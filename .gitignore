@@ -1,0 +1,21 @@
+# CDK asset output
+cdk.out/
+*.d.ts
+*.js
+!jest.config.js
+
+# Yarn
+.yarn/cache
+.yarn/install-state.gz
+
+# Node
+node_modules/
+
+# Build artifacts
+dist/
+
+# IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp

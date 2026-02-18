@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Engineering Team Applicant Portal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f6f9;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1a202c;
+      --text-muted: #718096;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --success: #16a34a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header .logo {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    header .logo svg { color: white; }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    main {
+      flex: 1;
+      max-width: 800px;
+      width: 100%;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+
+    .welcome {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 40px 48px;
+      margin-bottom: 24px;
+    }
+
+    .welcome h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .welcome p {
+      color: var(--text-muted);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .assignments {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .assignments-header {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .assignment-item {
+      display: flex;
+      align-items: center;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s;
+    }
+
+    .assignment-item:last-child { border-bottom: none; }
+
+    .assignment-item:hover { background: var(--bg); }
+
+    .assignment-icon {
+      width: 40px;
+      height: 40px;
+      background: #eff6ff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .assignment-icon svg { color: var(--accent); }
+
+    .assignment-meta { flex: 1; }
+
+    .assignment-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .assignment-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .assignment-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: #dcfce7;
+      color: var(--success);
+    }
+
+    .placeholder-note {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="16 18 22 12 16 6"/>
+      <polyline points="8 6 2 12 8 18"/>
+    </svg>
+  </div>
+  <h1>Engineering Team Applicant Portal</h1>
+</header>
+
+<main>
+  <div class="welcome">
+    <h2>Welcome, Applicant</h2>
+    <p>
+      Thank you for your interest in joining our engineering team. This portal contains
+      your interview exercise assignments. Please read each document carefully and follow
+      the instructions provided.
+    </p>
+    <p>
+      If you have any questions, reply to the invitation email you received.
+    </p>
+  </div>
+
+  <div class="assignments">
+    <div class="assignments-header">Your Assignments</div>
+
+    <!--
+      Replace the placeholder below with links to your actual assignment documents.
+      Upload HTML files to S3 using: COMPANY_NAME=acme CONTENT_DIR=./content ./scripts/upload-content.sh
+    -->
+
+    <div class="placeholder-note">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+           stroke="#cbd5e0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+           style="margin-bottom:16px">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <p><strong>No assignments yet.</strong></p>
+      <p style="margin-top:8px;font-size:0.875rem">
+        Upload your assignment HTML files and update this index page.
+      </p>
+    </div>
+
+    <!--
+      Example assignment link (uncomment and adjust):
+
+      <a class="assignment-item" href="/assignments/exercise-1.html">
+        <div class="assignment-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <div class="assignment-meta">
+          <div class="assignment-title">Exercise 1: System Design</div>
+          <div class="assignment-desc">Design a scalable distributed system for the given requirements.</div>
+        </div>
+        <span class="assignment-badge">Available</span>
+      </a>
+    -->
+  </div>
+</main>
+
+<footer>
+  &copy; <span id="year"></span> Your Company Name &mdash; Applicant Portal
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</footer>
+
+</body>
+</html>
