@@ -1,0 +1,78 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug. Please fill out the sections below as completely as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: Describe the unexpected behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      placeholder: Describe the expected behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps to reproduce the behavior.
+      placeholder: |
+        1. Run `yarn cdk deploy --context ...`
+        2. Observe error...
+    validations:
+      required: true
+
+  - type: input
+    id: cdk-version
+    attributes:
+      label: aws-cdk-lib version
+      placeholder: 'e.g. 2.221.0'
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: 'e.g. 22.4.0 (node --version)'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: aws-region
+    attributes:
+      label: Deployment region
+      description: This stack must be deployed to us-east-1. If deploying to a different region, that is the cause.
+      options:
+        - us-east-1 (required)
+        - Other (not supported)
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error output
+      description: Paste any relevant CDK, CloudFormation, or Lambda@Edge logs here.
+      render: shell
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and this is not a duplicate.
+          required: true
+        - label: I have read the [deployment guide](docs/DEPLOYMENT_GUIDE.md).
+          required: false
