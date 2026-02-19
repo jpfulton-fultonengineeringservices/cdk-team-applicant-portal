@@ -25,7 +25,8 @@ invalidation so changes are live within ~60 seconds.
 
 Options:
   -d, --content <dir>    Local content directory (default: ${DEFAULT_CONTENT_DIR})
-  -c, --company <name>   Company name — auto-detected from cdk.json if omitted
+  -c, --company <name>   Company name — auto-detected from cdk.json, or discovered
+                         from deployed CloudFormation stacks if omitted
   -p, --profile <name>   AWS CLI profile to use
   -r, --region <region>  AWS region (default: ${DEFAULT_REGION})
       --no-delete        Do not remove files from S3 that are absent locally
@@ -108,6 +109,40 @@ normalize_company_name() {
     | sed -E 's/^-|-$//g'
 }
 
+# Query CloudFormation for deployed ApplicantPortal-* stacks and return the single
+# matching stack name. Errors to stderr and returns non-zero if zero or multiple
+# stacks are found (requiring the user to be explicit with --company).
+discover_portal_stack() {
+  local raw
+  raw=$(aws cloudformation list-stacks \
+    --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE UPDATE_ROLLBACK_COMPLETE \
+    --region "${REGION}" \
+    "${PROFILE_ARGS[@]}" \
+    --query "StackSummaries[?starts_with(StackName, 'ApplicantPortal-')].StackName" \
+    --output text 2>/dev/null || true)
+
+  local stacks=()
+  while IFS=$'\t\n' read -r line; do
+    [[ -n "${line}" ]] && stacks+=("${line}")
+  done <<< "${raw}"
+
+  if [[ ${#stacks[@]} -eq 0 ]]; then
+    echo "ERROR: No deployed ApplicantPortal-* stacks found in ${REGION}." >&2
+    echo "       Has the stack been deployed? See the deployment guide." >&2
+    return 1
+  fi
+
+  if [[ ${#stacks[@]} -gt 1 ]]; then
+    echo "ERROR: Multiple ApplicantPortal-* stacks found in ${REGION}. Specify one with --company:" >&2
+    for s in "${stacks[@]}"; do
+      echo "         --company ${s#ApplicantPortal-}" >&2
+    done
+    return 1
+  fi
+
+  echo "${stacks[0]}"
+}
+
 detect_company_from_cdk_json() {
   local dir="${PWD}"
   while [[ "${dir}" != "/" ]]; do
@@ -146,18 +181,15 @@ if [[ -z "${COMPANY_NAME}" ]]; then
   fi
 fi
 
-if [[ -z "${COMPANY_NAME}" ]]; then
-  echo "ERROR: --company is required (could not auto-detect from cdk.json)." >&2
-  echo "       Run '${SCRIPT_NAME} --help' for usage." >&2
-  exit 1
-fi
-
-COMPANY_NAME="$(normalize_company_name "${COMPANY_NAME}")"
-
-if [[ -z "${COMPANY_NAME}" ]]; then
-  echo "ERROR: --company could not be normalized to a valid slug." >&2
-  echo "       Ensure the name contains at least one letter or digit." >&2
-  exit 1
+# Normalize if a name was found; if still empty, defer to CloudFormation discovery
+# after credentials are verified (see "Resolve stack name" below).
+if [[ -n "${COMPANY_NAME}" ]]; then
+  COMPANY_NAME="$(normalize_company_name "${COMPANY_NAME}")"
+  if [[ -z "${COMPANY_NAME}" ]]; then
+    echo "ERROR: --company could not be normalized to a valid slug." >&2
+    echo "       Ensure the name contains at least one letter or digit." >&2
+    exit 1
+  fi
 fi
 
 # Validate content directory and required files
@@ -201,16 +233,27 @@ fi
 ACCOUNT_ID=$(echo "${IDENTITY}" | grep -o '"Account": "[^"]*"' | cut -d'"' -f4)
 
 # ---------------------------------------------------------------------------
-# Resolve S3 bucket and CloudFront distribution ID from CloudFormation outputs
+# Resolve stack name — from --company / cdk.json, or by discovering deployed stacks
 # ---------------------------------------------------------------------------
 
-STACK_NAME="ApplicantPortal-${COMPANY_NAME}"
+if [[ -z "${COMPANY_NAME}" ]]; then
+  echo "No company name provided, searching for deployed portal stacks in ${REGION}..."
+  STACK_NAME="$(discover_portal_stack)"
+  COMPANY_NAME="${STACK_NAME#ApplicantPortal-}"
+  echo "Found: ${STACK_NAME}"
+else
+  STACK_NAME="ApplicantPortal-${COMPANY_NAME}"
+fi
 
 echo ""
 echo "Stack:   ${STACK_NAME}"
 echo "Account: ${ACCOUNT_ID}"
 echo "Region:  ${REGION}"
 echo ""
+
+# ---------------------------------------------------------------------------
+# Resolve S3 bucket and CloudFront distribution ID from CloudFormation outputs
+# ---------------------------------------------------------------------------
 
 echo "Fetching stack outputs from CloudFormation..."
 if ! STACK_DESCRIBE=$(aws cloudformation describe-stacks \
@@ -219,7 +262,13 @@ if ! STACK_DESCRIBE=$(aws cloudformation describe-stacks \
     "${PROFILE_ARGS[@]}" 2>&1); then
   if echo "${STACK_DESCRIBE}" | grep -q "does not exist"; then
     echo "ERROR: Stack '${STACK_NAME}' not found in ${REGION}." >&2
-    echo "       Check --company and --region, and verify the stack has been deployed." >&2
+    discovered="$(discover_portal_stack 2>/dev/null || true)"
+    if [[ -n "${discovered}" ]]; then
+      echo "       Found a deployed portal stack: ${discovered}" >&2
+      echo "       Try: --company ${discovered#ApplicantPortal-}" >&2
+    else
+      echo "       Check --company and --region, and verify the stack has been deployed." >&2
+    fi
   else
     echo "ERROR: Could not describe stack '${STACK_NAME}':" >&2
     echo "       ${STACK_DESCRIBE}" >&2
