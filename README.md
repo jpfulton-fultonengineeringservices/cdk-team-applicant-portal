@@ -4,10 +4,13 @@ A CDK project that deploys a Cognito-authenticated, CloudFront-served portal for
 
 ## Architecture
 
-```
-Applicant → CloudFront → Lambda@Edge (JWT validation) → S3 (static content)
-                                  ↓ (unauthenticated)
-                          Cognito Hosted UI (login)
+```mermaid
+flowchart LR
+    A([Applicant]) --> B[CloudFront]
+    B --> C[Lambda@Edge\nJWT validation]
+    C -->|authenticated| D[(S3\nstatic content)]
+    C -->|unauthenticated| E[Cognito\nHosted UI]
+    E -->|login redirect| B
 ```
 
 ## Prerequisites
