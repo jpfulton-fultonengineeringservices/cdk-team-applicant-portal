@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag';
 import { ApplicantPortalStack } from '../lib/applicant-portal-stack.js';
+import { normalizeCompanyName } from '../lib/config/portal-config.js';
 
 const app = new cdk.App();
 
@@ -8,7 +9,7 @@ const app = new cdk.App();
 // Read required parameters from CDK context
 // ---------------------------------------------------------------------------
 const dnsName: string = app.node.tryGetContext('dnsName') ?? '';
-const companyName: string = app.node.tryGetContext('companyName') ?? '';
+const companyName: string = normalizeCompanyName(app.node.tryGetContext('companyName') ?? '');
 const certificateArn: string = app.node.tryGetContext('certificateArn') ?? '';
 
 if (!dnsName || dnsName === 'apply.example.com') {
