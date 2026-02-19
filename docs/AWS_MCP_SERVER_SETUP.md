@@ -22,11 +22,11 @@ This project's `.cursor/mcp.json` configures five AWS Labs MCP servers that give
 
 ## Prerequisites
 
-| Requirement | Version | Install |
-|---|---|---|
-| Python | 3.10+ | `uv python install 3.10` |
-| uv | latest | [Astral install guide](https://docs.astral.sh/uv/getting-started/installation/) |
-| AWS CLI | v2 | [AWS install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) |
+| Requirement | Version | Install                                                                                            |
+| ----------- | ------- | -------------------------------------------------------------------------------------------------- |
+| Python      | 3.10+   | `uv python install 3.10`                                                                           |
+| uv          | latest  | [Astral install guide](https://docs.astral.sh/uv/getting-started/installation/)                    |
+| AWS CLI     | v2      | [AWS install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) |
 
 Install `uv` on macOS/Linux:
 
@@ -102,11 +102,7 @@ The IAM server requires broad IAM permissions. See the [full policy in the offic
 ```json
 {
   "Effect": "Allow",
-  "Action": [
-    "iam:List*",
-    "iam:Get*",
-    "iam:SimulatePrincipalPolicy"
-  ],
+  "Action": ["iam:List*", "iam:Get*", "iam:SimulatePrincipalPolicy"],
   "Resource": "*"
 }
 ```
@@ -124,12 +120,13 @@ Provides real-time AWS pricing data, cost analysis, and cost report generation. 
 
 **Environment variables used in this project:**
 
-| Variable | Value | Description |
-|---|---|---|
-| `FASTMCP_LOG_LEVEL` | `ERROR` | Suppresses verbose startup logs |
-| `AWS_REGION` | `us-east-1` | Routes requests to the nearest AWS Pricing API endpoint |
+| Variable            | Value       | Description                                             |
+| ------------------- | ----------- | ------------------------------------------------------- |
+| `FASTMCP_LOG_LEVEL` | `ERROR`     | Suppresses verbose startup logs                         |
+| `AWS_REGION`        | `us-east-1` | Routes requests to the nearest AWS Pricing API endpoint |
 
 **What it enables:**
+
 - Natural language queries against the AWS Pricing API
 - CDK project cost analysis via `analyze_cdk_project`
 - Generating cost reports (see `docs/ESTIMATED_COSTS.md`)
@@ -145,12 +142,13 @@ Assesses your AWS environment against the Well-Architected Framework Security Pi
 
 **Environment variables used in this project:**
 
-| Variable | Value | Description |
-|---|---|---|
-| `AWS_REGION` | `us-east-1` | Region to assess |
-| `FASTMCP_LOG_LEVEL` | `ERROR` | Suppresses verbose startup logs |
+| Variable            | Value       | Description                     |
+| ------------------- | ----------- | ------------------------------- |
+| `AWS_REGION`        | `us-east-1` | Region to assess                |
+| `FASTMCP_LOG_LEVEL` | `ERROR`     | Suppresses verbose startup logs |
 
 **What it enables:**
+
 - Checking whether GuardDuty, Security Hub, Inspector, and IAM Access Analyzer are enabled
 - Retrieving security findings filtered by severity
 - Verifying storage encryption and network security posture
@@ -167,14 +165,15 @@ Fetches and searches official AWS documentation. Does **not** require AWS creden
 
 **Environment variables used in this project:**
 
-| Variable | Value | Description |
-|---|---|---|
-| `FASTMCP_LOG_LEVEL` | `ERROR` | Suppresses verbose startup logs |
-| `AWS_DOCUMENTATION_PARTITION` | `aws` | Use `aws-cn` for AWS China regions |
+| Variable                      | Value   | Description                        |
+| ----------------------------- | ------- | ---------------------------------- |
+| `FASTMCP_LOG_LEVEL`           | `ERROR` | Suppresses verbose startup logs    |
+| `AWS_DOCUMENTATION_PARTITION` | `aws`   | Use `aws-cn` for AWS China regions |
 
 > **Corporate networks:** If your proxy blocks certain User-Agent strings, add `"MCP_USER_AGENT": "Mozilla/5.0 ..."` to this server's `env` block.
 
 **What it enables:**
+
 - Searching AWS documentation by keyword or phrase
 - Fetching specific documentation pages as markdown
 - Getting related content recommendations for a documentation URL
@@ -190,11 +189,12 @@ Provides CDK-specific guidance, construct patterns, CDK Nag rule explanations, a
 
 **Environment variables used in this project:**
 
-| Variable | Value | Description |
-|---|---|---|
+| Variable            | Value   | Description                     |
+| ------------------- | ------- | ------------------------------- |
 | `FASTMCP_LOG_LEVEL` | `ERROR` | Suppresses verbose startup logs |
 
 **What it enables:**
+
 - CDK best practice guidance and construct recommendations
 - AWS Solutions Construct pattern lookup
 - CDK Nag suppression checks and rule explanations
@@ -212,10 +212,10 @@ Manages IAM users, roles, groups, and policies. Supports a `--readonly` flag for
 
 **Environment variables used in this project:**
 
-| Variable | Value | Description |
-|---|---|---|
-| `AWS_REGION` | `us-east-1` | Target region |
-| `FASTMCP_LOG_LEVEL` | `ERROR` | Suppresses verbose startup logs |
+| Variable            | Value       | Description                     |
+| ------------------- | ----------- | ------------------------------- |
+| `AWS_REGION`        | `us-east-1` | Target region                   |
+| `FASTMCP_LOG_LEVEL` | `ERROR`     | Suppresses verbose startup logs |
 
 > **Note:** This server's entry in `.cursor/mcp.json` uses the split `command`/`args` format (`"command": "uvx"`, `"args": ["awslabs.iam-mcp-server@latest"]`) rather than the inline command string used by the other servers. Both forms are equivalent.
 
@@ -226,6 +226,7 @@ Manages IAM users, roles, groups, and policies. Supports a `--readonly` flag for
 ```
 
 **What it enables:**
+
 - Listing and inspecting IAM users, roles, groups, and policies
 - Simulating IAM policy permissions before applying them
 - Creating and managing IAM resources (when not in read-only mode)

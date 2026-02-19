@@ -79,15 +79,15 @@ graph TD
 
 Stores all static content (HTML, CSS, JS, assets) served to authenticated applicants.
 
-| Property | Value |
-|---|---|
-| Name | `{companyName}-applicant-portal-{account}-{region}` |
-| Access | Private — no public access |
-| Encryption | S3-managed (SSE-S3) |
-| Transport | SSL-only (bucket policy denies HTTP) |
-| Access method | CloudFront Origin Access Control (OAC) |
-| Lifecycle | Delete incomplete multipart uploads after 7 days |
-| Removal policy | `RETAIN` — survives stack deletion |
+| Property       | Value                                               |
+| -------------- | --------------------------------------------------- |
+| Name           | `{companyName}-applicant-portal-{account}-{region}` |
+| Access         | Private — no public access                          |
+| Encryption     | S3-managed (SSE-S3)                                 |
+| Transport      | SSL-only (bucket policy denies HTTP)                |
+| Access method  | CloudFront Origin Access Control (OAC)              |
+| Lifecycle      | Delete incomplete multipart uploads after 7 days    |
+| Removal policy | `RETAIN` — survives stack deletion                  |
 
 CloudFront is the **only** entity that can read from this bucket, enforced via an OAC resource policy.
 
@@ -97,11 +97,11 @@ CloudFront is the **only** entity that can read from this bucket, enforced via a
 
 Receives CloudFront access logs for auditing and debugging.
 
-| Property | Value |
-|---|---|
-| Log prefix | `cloudfront-access-logs/` |
-| Retention | Logs expire after 90 days |
-| Removal policy | `DESTROY` |
+| Property       | Value                     |
+| -------------- | ------------------------- |
+| Log prefix     | `cloudfront-access-logs/` |
+| Retention      | Logs expire after 90 days |
+| Removal policy | `DESTROY`                 |
 
 ---
 
@@ -109,25 +109,25 @@ Receives CloudFront access logs for auditing and debugging.
 
 The global entry point for all requests. Handles TLS termination, caching configuration, and routes every request through Lambda@Edge before touching the origin.
 
-| Property | Value |
-|---|---|
-| Custom domain | `{dnsName}` (e.g., `apply.acme.com`) |
-| TLS certificate | ACM (us-east-1) |
-| Min TLS version | TLS 1.2 (2021) |
-| HTTP versions | HTTP/2 and HTTP/3 |
-| IPv6 | Enabled |
-| Price class | `PRICE_CLASS_100` (US, Canada, Europe) |
-| Default root | `index.html` |
-| Viewer protocol | Redirect HTTP → HTTPS |
-| Cache policy | `CACHING_DISABLED` (always fresh) |
-| Origin request policy | `CORS_S3_ORIGIN` |
+| Property              | Value                                  |
+| --------------------- | -------------------------------------- |
+| Custom domain         | `{dnsName}` (e.g., `apply.acme.com`)   |
+| TLS certificate       | ACM (us-east-1)                        |
+| Min TLS version       | TLS 1.2 (2021)                         |
+| HTTP versions         | HTTP/2 and HTTP/3                      |
+| IPv6                  | Enabled                                |
+| Price class           | `PRICE_CLASS_100` (US, Canada, Europe) |
+| Default root          | `index.html`                           |
+| Viewer protocol       | Redirect HTTP → HTTPS                  |
+| Cache policy          | `CACHING_DISABLED` (always fresh)      |
+| Origin request policy | `CORS_S3_ORIGIN`                       |
 
 **Error responses:**
 
-| HTTP Code | Response | TTL |
-|---|---|---|
-| 403 | `/error.html` | 5 minutes |
-| 404 | `/error.html` | 5 minutes |
+| HTTP Code | Response      | TTL       |
+| --------- | ------------- | --------- |
+| 403       | `/error.html` | 5 minutes |
+| 404       | `/error.html` | 5 minutes |
 
 ---
 
@@ -135,14 +135,14 @@ The global entry point for all requests. Handles TLS termination, caching config
 
 Runs on every incoming request at the CloudFront edge location closest to the user. This is the authentication gateway — no request reaches S3 without passing through this function.
 
-| Property | Value |
-|---|---|
-| Event type | `VIEWER_REQUEST` |
-| Runtime | Node.js 22.x |
-| Timeout | 5 seconds |
-| Memory | 128 MB |
-| Bundler | esbuild (minified, CJS) |
-| SSM path | Inlined at bundle time via esbuild `define` |
+| Property   | Value                                       |
+| ---------- | ------------------------------------------- |
+| Event type | `VIEWER_REQUEST`                            |
+| Runtime    | Node.js 22.x                                |
+| Timeout    | 5 seconds                                   |
+| Memory     | 128 MB                                      |
+| Bundler    | esbuild (minified, CJS)                     |
+| SSM path   | Inlined at bundle time via esbuild `define` |
 
 **Function responsibilities:**
 
@@ -161,15 +161,15 @@ Manages user identities, authentication, and the hosted login UI.
 
 **User Pool:**
 
-| Property | Value |
-|---|---|
-| Name | `{companyName}-applicant-portal` |
-| Self-signup | Disabled (invite-only) |
-| Sign-in alias | Email only |
-| Email auto-verify | Enabled |
-| MFA | Optional (TOTP only; SMS disabled) |
-| Account recovery | Email only |
-| Feature plan | Essentials |
+| Property          | Value                              |
+| ----------------- | ---------------------------------- |
+| Name              | `{companyName}-applicant-portal`   |
+| Self-signup       | Disabled (invite-only)             |
+| Sign-in alias     | Email only                         |
+| Email auto-verify | Enabled                            |
+| MFA               | Optional (TOTP only; SMS disabled) |
+| Account recovery  | Email only                         |
+| Feature plan      | Essentials                         |
 
 **Required user attributes:** `email` (immutable), `given_name`, `family_name`
 
@@ -177,15 +177,15 @@ Manages user identities, authentication, and the hosted login UI.
 
 **App Client:**
 
-| Property | Value |
-|---|---|
-| OAuth flows | Implicit (tokens returned in URL fragment) |
-| Scopes | `openid`, `email`, `profile` |
-| Callback URL | `https://{dnsName}/oauth2/callback` |
-| Logout URL | `https://{dnsName}/` |
-| ID token validity | 12 hours |
-| Access token validity | 12 hours |
-| Refresh token validity | 30 days |
+| Property               | Value                                      |
+| ---------------------- | ------------------------------------------ |
+| OAuth flows            | Implicit (tokens returned in URL fragment) |
+| Scopes                 | `openid`, `email`, `profile`               |
+| Callback URL           | `https://{dnsName}/oauth2/callback`        |
+| Logout URL             | `https://{dnsName}/`                       |
+| ID token validity      | 12 hours                                   |
+| Access token validity  | 12 hours                                   |
+| Refresh token validity | 30 days                                    |
 
 **Hosted UI Domain:** `https://{companyName}-applicant-portal.auth.{region}.amazoncognito.com`
 
@@ -195,10 +195,10 @@ Manages user identities, authentication, and the hosted login UI.
 
 TLS certificate for the custom domain attached to CloudFront.
 
-| Scenario | Behavior |
-|---|---|
-| `certificateArn` context provided | Imports the existing certificate |
-| `certificateArn` not provided | Creates a new certificate with DNS validation |
+| Scenario                          | Behavior                                      |
+| --------------------------------- | --------------------------------------------- |
+| `certificateArn` context provided | Imports the existing certificate              |
+| `certificateArn` not provided     | Creates a new certificate with DNS validation |
 
 > **Note:** The certificate must be in `us-east-1` regardless of where other resources are deployed — this is an AWS requirement for CloudFront.
 
@@ -208,11 +208,11 @@ TLS certificate for the custom domain attached to CloudFront.
 
 Stores Cognito configuration that Lambda@Edge reads at runtime.
 
-| Property | Value |
-|---|---|
-| Parameter name | `/{companyName}/applicant-portal/cognito-config` |
-| Type | `String` |
-| Value (JSON) | `userPoolId`, `clientId`, `region`, `cognitoDomainPrefix`, `appDomain` |
+| Property       | Value                                                                  |
+| -------------- | ---------------------------------------------------------------------- |
+| Parameter name | `/{companyName}/applicant-portal/cognito-config`                       |
+| Type           | `String`                                                               |
+| Value (JSON)   | `userPoolId`, `clientId`, `region`, `cognitoDomainPrefix`, `appDomain` |
 
 The Lambda@Edge function has an IAM policy granting `ssm:GetParameter` for this specific parameter. The SSM path is inlined into the Lambda bundle at CDK synthesis time via esbuild `define`, so there are no hardcoded strings in source code.
 
@@ -220,10 +220,10 @@ The Lambda@Edge function has an IAM policy granting `ssm:GetParameter` for this 
 
 ### CloudWatch Log Groups
 
-| Group | Retention | Removal |
-|---|---|---|
-| `/aws/cognito/userpool/{companyName}-applicant-portal` | 1 month | DESTROY |
-| `/aws/lambda/us-east-1.{stackName}-ViewerRequest` | 1 month | DESTROY |
+| Group                                                  | Retention | Removal |
+| ------------------------------------------------------ | --------- | ------- |
+| `/aws/cognito/userpool/{companyName}-applicant-portal` | 1 month   | DESTROY |
+| `/aws/lambda/us-east-1.{stackName}-ViewerRequest`      | 1 month   | DESTROY |
 
 ---
 
@@ -355,18 +355,18 @@ SSM parameter path
 
 ## Security Design
 
-| Control | Implementation |
-|---|---|
-| No public S3 access | `BlockPublicAccess.BLOCK_ALL` + OAC-only bucket policy |
-| TLS enforcement | Bucket policy denies non-HTTPS; CloudFront min TLS 1.2 |
-| Edge authentication | Lambda@Edge runs before any origin fetch |
-| JWT validation | JWKS signature verification; issuer, audience, expiry checked |
-| Invite-only access | Cognito self-signup disabled; admin creates users |
-| Secure cookies | `HttpOnly`, `Secure`, `SameSite=Lax`; 12-hour expiry |
-| XSS protection | HTML-escaped outputs in Lambda@Edge response |
-| MFA support | Optional TOTP available to all users |
+| Control                      | Implementation                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------- |
+| No public S3 access          | `BlockPublicAccess.BLOCK_ALL` + OAC-only bucket policy                          |
+| TLS enforcement              | Bucket policy denies non-HTTPS; CloudFront min TLS 1.2                          |
+| Edge authentication          | Lambda@Edge runs before any origin fetch                                        |
+| JWT validation               | JWKS signature verification; issuer, audience, expiry checked                   |
+| Invite-only access           | Cognito self-signup disabled; admin creates users                               |
+| Secure cookies               | `HttpOnly`, `Secure`, `SameSite=Lax`; 12-hour expiry                            |
+| XSS protection               | HTML-escaped outputs in Lambda@Edge response                                    |
+| MFA support                  | Optional TOTP available to all users                                            |
 | Principle of least privilege | Lambda@Edge IAM allows only `ssm:GetParameter` on the specific config parameter |
-| CDK Nag | Security rules enforced at synthesis time |
+| CDK Nag                      | Security rules enforced at synthesis time                                       |
 
 **Why implicit flow instead of authorization code flow?**
 
@@ -378,11 +378,11 @@ Lambda@Edge functions cannot maintain server-side session state across edge node
 
 ### CDK Context Parameters
 
-| Parameter | Required | Description |
-|---|---|---|
-| `dnsName` | Yes | Fully qualified domain name (e.g., `apply.acme.com`) |
-| `companyName` | Yes | Used to name resources and Cognito domain prefix |
-| `certificateArn` | No | Existing ACM cert ARN; if omitted a new cert is created |
+| Parameter        | Required | Description                                             |
+| ---------------- | -------- | ------------------------------------------------------- |
+| `dnsName`        | Yes      | Fully qualified domain name (e.g., `apply.acme.com`)    |
+| `companyName`    | Yes      | Used to name resources and Cognito domain prefix        |
+| `certificateArn` | No       | Existing ACM cert ARN; if omitted a new cert is created |
 
 ### Deployment
 

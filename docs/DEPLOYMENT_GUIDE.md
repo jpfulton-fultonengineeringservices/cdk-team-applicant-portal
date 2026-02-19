@@ -24,13 +24,13 @@ This guide walks through deploying the CDK Team Applicant Portal end to end — 
 
 ## Prerequisites
 
-| Requirement | Notes |
-|---|---|
-| Node.js 22+ | Check with `node --version` |
-| Yarn 4 | `corepack enable && corepack prepare yarn@4.7.0 --activate` |
-| AWS CLI | Configured with credentials for the target account |
-| AWS CDK CLI | Installed globally (`npm install -g aws-cdk`) or via `yarn cdk` |
-| AWS account bootstrapped in `us-east-1` | See [Bootstrap the AWS Account](#bootstrap-the-aws-account) |
+| Requirement                             | Notes                                                           |
+| --------------------------------------- | --------------------------------------------------------------- |
+| Node.js 22+                             | Check with `node --version`                                     |
+| Yarn 4                                  | `corepack enable && corepack prepare yarn@4.7.0 --activate`     |
+| AWS CLI                                 | Configured with credentials for the target account              |
+| AWS CDK CLI                             | Installed globally (`npm install -g aws-cdk`) or via `yarn cdk` |
+| AWS account bootstrapped in `us-east-1` | See [Bootstrap the AWS Account](#bootstrap-the-aws-account)     |
 
 > **Region constraint:** This stack **must** be deployed to `us-east-1`. Lambda@Edge functions and ACM certificates used with CloudFront are required to exist in US East (N. Virginia).
 
@@ -63,11 +63,11 @@ cdk bootstrap aws://{ACCOUNT_ID}/us-east-1 --profile your-profile-name
 
 All deployment parameters are passed as CDK context. You can set them in `cdk.json` for convenience or pass them directly via `--context` flags on each command.
 
-| Parameter | Required | Description | Example |
-|---|---|---|---|
-| `dnsName` | Yes | Fully qualified domain name for the portal | `apply.acme.com` |
-| `companyName` | Yes | Short name used for resource prefixes and Cognito domain | `acme` |
-| `certificateArn` | No | ARN of an existing ACM certificate in `us-east-1`; omit to create a new one | `arn:aws:acm:us-east-1:...` |
+| Parameter        | Required | Description                                                                 | Example                     |
+| ---------------- | -------- | --------------------------------------------------------------------------- | --------------------------- |
+| `dnsName`        | Yes      | Fully qualified domain name for the portal                                  | `apply.acme.com`            |
+| `companyName`    | Yes      | Short name used for resource prefixes and Cognito domain                    | `acme`                      |
+| `certificateArn` | No       | ARN of an existing ACM certificate in `us-east-1`; omit to create a new one | `arn:aws:acm:us-east-1:...` |
 
 **`companyName` is normalized** to a lowercase, hyphen-separated slug (e.g. `Acme Corp` → `acme-corp`) and used in S3 bucket names, the Cognito User Pool name, and the Cognito Hosted UI domain prefix.
 
@@ -91,6 +91,7 @@ yarn cdk diff \
 ```
 
 Pay close attention to:
+
 - Any resource marked **Replace** (`[~]` with a replacement indicator) — these will be destroyed and recreated, which can cause downtime
 - Changes to the Lambda@Edge function — CloudFront associations take several minutes to propagate
 - Changes to the Cognito User Pool — some attribute changes require replacement and will delete existing users
@@ -298,8 +299,8 @@ yarn cdk destroy \
 
 **Resources that survive stack deletion** (removal policy `RETAIN`):
 
-| Resource | Reason |
-|---|---|
+| Resource          | Reason                        |
+| ----------------- | ----------------------------- |
 | S3 content bucket | Prevents accidental data loss |
 
 Delete this bucket manually from the S3 console if you intend a full teardown. Also remember to remove your DNS records once the CloudFront distribution is gone.
