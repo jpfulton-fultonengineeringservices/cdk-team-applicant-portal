@@ -41,7 +41,7 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "22.7.9",
-    "aws-cdk": "2.1100.1",
+    "aws-cdk": "2.1106.1",
     "esbuild": "^0.24.0",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
