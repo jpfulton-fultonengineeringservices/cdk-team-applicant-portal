@@ -70,7 +70,7 @@ export class CloudFrontBuilder {
     const viewerRequestFunction = new NodejsFunction(scope, 'ViewerRequestFn', {
       entry: path.join(__dirname, '../edge-auth/viewer-request.ts'),
       handler: 'handler',
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       timeout: cdk.Duration.seconds(5),
       memorySize: 128,
       logGroup: viewerRequestLogGroup,
@@ -83,7 +83,7 @@ export class CloudFrontBuilder {
         define: {
           'process.env.COGNITO_CONFIG_PARAM': JSON.stringify(ssmParamName),
         },
-        target: 'node22',
+        target: 'node24',
       },
     });
 
