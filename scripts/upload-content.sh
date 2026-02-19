@@ -154,6 +154,12 @@ fi
 
 COMPANY_NAME="$(normalize_company_name "${COMPANY_NAME}")"
 
+if [[ -z "${COMPANY_NAME}" ]]; then
+  echo "ERROR: --company could not be normalized to a valid slug." >&2
+  echo "       Ensure the name contains at least one letter or digit." >&2
+  exit 1
+fi
+
 # Validate content directory and required files
 if [[ ! -d "${CONTENT_DIR}" ]]; then
   echo "ERROR: Content directory '${CONTENT_DIR}' does not exist." >&2

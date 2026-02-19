@@ -157,6 +157,12 @@ fi
 # Normalize to match CDK's derived stack name
 COMPANY_NAME="$(normalize_company_name "${COMPANY_NAME}")"
 
+if [[ -z "${COMPANY_NAME}" ]]; then
+  echo "ERROR: --company could not be normalized to a valid slug." >&2
+  echo "       Ensure the name contains at least one letter or digit." >&2
+  exit 1
+fi
+
 if [[ -z "${EMAIL}" ]]; then
   echo "ERROR: --email is required." >&2
   exit 1
