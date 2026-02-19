@@ -72,7 +72,7 @@ export class CognitoAuthBuilder {
             userInvitation: {
                 emailSubject: 'Your applicant portal invitation',
                 emailBody: `You have been invited to access the ${config.companyName} applicant portal.\n\nYour temporary password is: {####}\n\nPlease visit https://${config.dnsName} to log in and complete your setup.\n\nThis invitation will expire in 7 days.`,
-                smsMessage: 'Your temporary password for the applicant portal is {####}',
+                smsMessage: '{username}, your temporary password for the applicant portal is {####}',
             },
         });
 
