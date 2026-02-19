@@ -251,10 +251,17 @@ Run with `--help` to see all options, or `--dry-run` to verify credentials and s
 Sync your HTML content to S3 and invalidate the CloudFront cache:
 
 ```bash
-COMPANY_NAME=acme CONTENT_DIR=./content ./scripts/upload-content.sh
+# ./content is used by default; company auto-detected from cdk.json
+./scripts/upload-content.sh
+
+# Explicit options
+./scripts/upload-content.sh --content ./my-content --company acme --profile your-profile-name
+
+# Upload and wait until the invalidation has fully propagated before returning
+./scripts/upload-content.sh --wait
 ```
 
-The content directory must contain at minimum `index.html` and `error.html`.
+The content directory must contain at minimum `index.html` and `error.html`. By default, files present in S3 but absent from the local directory are removed — pass `--no-delete` to preserve them. Run with `--dry-run` to preview what would change without uploading anything.
 
 ---
 
