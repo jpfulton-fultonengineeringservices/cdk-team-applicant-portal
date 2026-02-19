@@ -62,6 +62,7 @@ COMPANY_NAME=acme CONTENT_DIR=./content ./scripts/upload-content.sh
 ## Architecture
 
 ### High-Level Flow
+
 ```
 Applicant → CloudFront → Lambda@Edge (JWT validation) → S3 (static content)
                               ↓ (unauthenticated)
@@ -108,6 +109,7 @@ The CDK stack uses a builder pattern with specialized modules:
 ### Configuration Pattern
 
 Configuration is validated centrally via `lib/config/portal-config.ts`:
+
 - Type-safe configuration interface (`ApplicantPortalProps`)
 - Runtime validation with helpful error messages
 - CDK context parameters: `dnsName`, `companyName`, `certificateArn`
@@ -124,6 +126,7 @@ Configuration is validated centrally via `lib/config/portal-config.ts`:
 ## Testing Strategy
 
 Tests use Jest with ts-jest (`test/applicant-portal.test.ts`):
+
 - S3 bucket security policies
 - Cognito configuration (self-signup disabled, OAuth flow)
 - SSM parameter creation
