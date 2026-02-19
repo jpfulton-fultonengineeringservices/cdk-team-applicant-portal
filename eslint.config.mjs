@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import js from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
 
@@ -65,27 +66,25 @@ const licenseHeaderPlugin = {
   },
 };
 
-export default tseslint.config(
+export default defineConfig(
   // Base JS recommended rules
   js.configs.recommended,
 
   // TypeScript recommended rules
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
 
   // Prettier compatibility (disables style rules that conflict with Prettier)
   prettierConfig,
 
   // Global ignores
-  {
-    ignores: [
-      'node_modules/**',
-      'cdk.out/**',
-      'dist/**',
-      '**/*.js',
-      '**/*.d.ts',
-      '!eslint.config.mjs',
-    ],
-  },
+  globalIgnores([
+    'node_modules/**',
+    'cdk.out/**',
+    'dist/**',
+    '**/*.js',
+    '**/*.d.ts',
+    '!eslint.config.mjs',
+  ]),
 
   // TypeScript source files
   {
