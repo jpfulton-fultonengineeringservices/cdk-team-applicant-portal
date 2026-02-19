@@ -2865,7 +2865,7 @@ __metadata:
     aws-cdk: "npm:2.1100.1"
     aws-cdk-lib: "npm:2.238.0"
     cdk-nag: "npm:^2.28.0"
-    constructs: "npm:^10.0.0"
+    constructs: "npm:^10.5.1"
     cookie: "npm:^0.6.0"
     esbuild: "npm:^0.24.0"
     eslint: "npm:^10.0.0"
@@ -2967,10 +2967,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"constructs@npm:^10.0.0":
-  version: 10.5.0
-  resolution: "constructs@npm:10.5.0"
-  checksum: 10c0/c93d6014fa90814ac14a3ed77a93c179768d03d20ee0f2b1b95bbe4a19673be955f96207f9e889b41a231a6b6a5745fc66ce6cee783bb9513ceb0d443be430a6
+"constructs@npm:^10.5.1":
+  version: 10.5.1
+  resolution: "constructs@npm:10.5.1"
+  checksum: 10c0/06767f8a026f6951fd1b1073e9980ab1c006b8ca4b691362ba72e6044756f6bd661defc95f7c307d08b955fd23f3e79adda6096c1339dbb814e1f07831dacac6
   languageName: node
   linkType: hard
 
