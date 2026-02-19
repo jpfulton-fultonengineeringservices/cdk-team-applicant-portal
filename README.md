@@ -7,7 +7,7 @@ A CDK project that deploys a Cognito-authenticated, CloudFront-served portal for
 ```mermaid
 flowchart LR
     A([Applicant]) --> B[CloudFront]
-    B --> C[Lambda@Edge<br/>JWT validation]
+    B --> C["Lambda@Edge<br/>JWT validation"]
     C -->|authenticated| D[(S3<br/>static content)]
     C -->|unauthenticated| E[Cognito<br/>Hosted UI]
     E -->|login redirect| B
