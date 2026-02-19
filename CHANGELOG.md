@@ -6,6 +6,13 @@ This file is automatically maintained by [release-please](https://github.com/goo
 Do not edit it manually — commit messages following [Conventional Commits](https://www.conventionalcommits.org/)
 drive the version bumps and changelog entries.
 
+## [1.1.0](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/compare/v1.0.0...v1.1.0) (2026-02-19)
+
+
+### Features
+
+* **edge:** upgrade Lambda@Edge runtime to Node.js 24 ([8f0faef](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/commit/8f0faef2a6776058d3d3a67d378c963c18a78aa2))
+
 ## 1.0.0 (2026-02-19)
 
 
