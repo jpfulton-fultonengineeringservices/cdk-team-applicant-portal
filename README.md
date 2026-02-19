@@ -1,16 +1,20 @@
 # CDK Team Applicant Portal
 
+[![ci](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Node.js 22+](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org/)
+
 A CDK project that deploys a Cognito-authenticated, CloudFront-served portal for engineering team applicants. Applicants log in to access interview exercise assignments served as static HTML documents from S3.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A([Applicant]) --> B[CloudFront]
-    B --> C["Lambda@Edge<br/>JWT validation"]
-    C -->|authenticated| D[(S3<br/>static content)]
-    C -->|unauthenticated| E[Cognito<br/>Hosted UI]
-    E -->|login redirect| B
+  A([Applicant]) --> B[CloudFront]
+  B --> C["Lambda@Edge<br/>JWT validation"]
+  C -->|authenticated| D[(S3<br/>static content)]
+  C -->|unauthenticated| E[Cognito<br/>Hosted UI]
+  E -->|login redirect| B
 ```
 
 ## Prerequisites
@@ -26,11 +30,11 @@ flowchart LR
 
 All deployment parameters are set via CDK context. Edit `cdk.json` or pass via `--context` flag:
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `dnsName` | Fully qualified domain name for the portal (e.g. `apply.acme.com`) | `apply.example.com` |
-| `companyName` | Short name used for resource prefixes (e.g. `acme`) | `example` |
-| `certificateArn` | ARN of an existing ACM certificate in us-east-1. If empty, a new cert is created. | `""` |
+| Parameter        | Description                                                                       | Default             |
+| ---------------- | --------------------------------------------------------------------------------- | ------------------- |
+| `dnsName`        | Fully qualified domain name for the portal (e.g. `apply.acme.com`)                | `apply.example.com` |
+| `companyName`    | Short name used for resource prefixes (e.g. `acme`)                               | `example`           |
+| `certificateArn` | ARN of an existing ACM certificate in us-east-1. If empty, a new cert is created. | `""`                |
 
 ### Example deployment
 
@@ -91,8 +95,29 @@ If you let CDK create the ACM certificate (no `certificateArn` provided), check 
 ```bash
 yarn build          # Compile TypeScript
 yarn test           # Run Jest tests
+yarn lint           # Run ESLint
+yarn format:check   # Check Prettier formatting
 yarn cdk synth      # Synthesize CloudFormation template
 yarn cdk diff       # Show pending infrastructure changes
 yarn cdk deploy     # Deploy to AWS
 yarn cdk destroy    # Tear down all resources
 ```
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup
+instructions, commit message conventions (Conventional Commits), and the pull request process.
+
+All contributions require a DCO sign-off (`git commit -s`).
+
+## Security
+
+To report a security vulnerability, please use
+[GitHub Security Advisories](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/security/advisories/new)
+rather than opening a public issue. See [SECURITY.md](SECURITY.md) for the full policy.
+
+## License
+
+Copyright 2025-2026 J. Patrick Fulton
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the full text.
