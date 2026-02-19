@@ -1,3 +1,17 @@
+// Copyright 2025-2026 J. Patrick Fulton
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * Lambda@Edge Viewer Request handler for Cognito JWT authentication.
  *
@@ -22,38 +36,38 @@ import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 // ---------------------------------------------------------------------------
 
 interface CognitoConfig {
-    userPoolId: string;
-    clientId: string;
-    region: string;
-    cognitoDomainPrefix: string;
-    appDomain: string;
+  userPoolId: string;
+  clientId: string;
+  region: string;
+  cognitoDomainPrefix: string;
+  appDomain: string;
 }
 
 let cachedConfig: CognitoConfig | null = null;
 
 async function loadConfig(): Promise<CognitoConfig> {
-    if (cachedConfig) return cachedConfig;
+  if (cachedConfig) return cachedConfig;
 
-    // SSM parameter name is embedded at bundle time by NodejsFunction via
-    // environment variable injected as a define (see cloudfront-builder.ts).
-    const paramName = process.env.COGNITO_CONFIG_PARAM;
-    if (!paramName) {
-        throw new Error('COGNITO_CONFIG_PARAM environment variable is not set');
-    }
+  // SSM parameter name is embedded at bundle time by NodejsFunction via
+  // environment variable injected as a define (see cloudfront-builder.ts).
+  const paramName = process.env.COGNITO_CONFIG_PARAM;
+  if (!paramName) {
+    throw new Error('COGNITO_CONFIG_PARAM environment variable is not set');
+  }
 
-    // Lambda@Edge runs in us-east-1 for viewer request events, but the SSM
-    // parameter also lives in us-east-1 (same region as the stack).
-    const ssm = new SSMClient({ region: 'us-east-1' });
-    const result = await ssm.send(
-        new GetParameterCommand({ Name: paramName, WithDecryption: false })
-    );
+  // Lambda@Edge runs in us-east-1 for viewer request events, but the SSM
+  // parameter also lives in us-east-1 (same region as the stack).
+  const ssm = new SSMClient({ region: 'us-east-1' });
+  const result = await ssm.send(
+    new GetParameterCommand({ Name: paramName, WithDecryption: false }),
+  );
 
-    if (!result.Parameter?.Value) {
-        throw new Error(`SSM parameter ${paramName} not found or empty`);
-    }
+  if (!result.Parameter?.Value) {
+    throw new Error(`SSM parameter ${paramName} not found or empty`);
+  }
 
-    cachedConfig = JSON.parse(result.Parameter.Value) as CognitoConfig;
-    return cachedConfig;
+  cachedConfig = JSON.parse(result.Parameter.Value) as CognitoConfig;
+  return cachedConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -63,18 +77,18 @@ async function loadConfig(): Promise<CognitoConfig> {
 const jwksClientCache = new Map<string, ReturnType<typeof jwksClient>>();
 
 function getJwksClient(config: CognitoConfig): ReturnType<typeof jwksClient> {
-    const key = `${config.region}:${config.userPoolId}`;
-    if (!jwksClientCache.has(key)) {
-        jwksClientCache.set(
-            key,
-            jwksClient({
-                jwksUri: `https://cognito-idp.${config.region}.amazonaws.com/${config.userPoolId}/.well-known/jwks.json`,
-                cache: true,
-                cacheMaxAge: 600_000, // 10 minutes
-            })
-        );
-    }
-    return jwksClientCache.get(key)!;
+  const key = `${config.region}:${config.userPoolId}`;
+  if (!jwksClientCache.has(key)) {
+    jwksClientCache.set(
+      key,
+      jwksClient({
+        jwksUri: `https://cognito-idp.${config.region}.amazonaws.com/${config.userPoolId}/.well-known/jwks.json`,
+        cache: true,
+        cacheMaxAge: 600_000, // 10 minutes
+      }),
+    );
+  }
+  return jwksClientCache.get(key)!;
 }
 
 // ---------------------------------------------------------------------------
@@ -82,53 +96,56 @@ function getJwksClient(config: CognitoConfig): ReturnType<typeof jwksClient> {
 // ---------------------------------------------------------------------------
 
 async function verifyToken(token: string, config: CognitoConfig): Promise<Record<string, unknown>> {
-    const decoded = jwt.decode(token, { complete: true });
-    if (!decoded || typeof decoded === 'string') {
-        throw new Error('Invalid token format');
-    }
+  const decoded = jwt.decode(token, { complete: true });
+  if (!decoded || typeof decoded === 'string') {
+    throw new Error('Invalid token format');
+  }
 
-    const kid = decoded.header.kid;
-    if (!kid) throw new Error('No kid in token header');
+  const kid = decoded.header.kid;
+  if (!kid) throw new Error('No kid in token header');
 
-    const client = getJwksClient(config);
-    const signingKey = await client.getSigningKey(kid);
-    const publicKey = signingKey.getPublicKey();
+  const client = getJwksClient(config);
+  const signingKey = await client.getSigningKey(kid);
+  const publicKey = signingKey.getPublicKey();
 
-    return jwt.verify(token, publicKey, {
-        issuer: `https://cognito-idp.${config.region}.amazonaws.com/${config.userPoolId}`,
-        audience: config.clientId,
-    }) as Record<string, unknown>;
+  return jwt.verify(token, publicKey, {
+    issuer: `https://cognito-idp.${config.region}.amazonaws.com/${config.userPoolId}`,
+    audience: config.clientId,
+  }) as Record<string, unknown>;
 }
 
 function extractToken(request: CloudFrontRequest, config: CognitoConfig): string | null {
-    const cookieHeader = request.headers.cookie?.[0]?.value;
-    if (!cookieHeader) return null;
-    const cookies = cookie.parse(cookieHeader);
-    return cookies[`CognitoIdentityServiceProvider.${config.clientId}.idToken`] ?? null;
+  const cookieHeader = request.headers.cookie?.[0]?.value;
+  if (!cookieHeader) return null;
+  const cookies = cookie.parse(cookieHeader);
+  return cookies[`CognitoIdentityServiceProvider.${config.clientId}.idToken`] ?? null;
 }
 
 // ---------------------------------------------------------------------------
 // Response builders
 // ---------------------------------------------------------------------------
 
-function redirectToLogin(request: CloudFrontRequest, config: CognitoConfig): CloudFrontRequestResult {
-    const originalUrl = `https://${config.appDomain}${request.uri}${request.querystring ? '?' + request.querystring : ''}`;
-    const loginUrl =
-        `https://${config.cognitoDomainPrefix}.auth.${config.region}.amazoncognito.com/oauth2/authorize` +
-        `?client_id=${config.clientId}` +
-        `&response_type=token` +
-        `&scope=openid+email+profile` +
-        `&redirect_uri=https://${config.appDomain}/oauth2/callback` +
-        `&state=${encodeURIComponent(originalUrl)}`;
+function redirectToLogin(
+  request: CloudFrontRequest,
+  config: CognitoConfig,
+): CloudFrontRequestResult {
+  const originalUrl = `https://${config.appDomain}${request.uri}${request.querystring ? '?' + request.querystring : ''}`;
+  const loginUrl =
+    `https://${config.cognitoDomainPrefix}.auth.${config.region}.amazoncognito.com/oauth2/authorize` +
+    `?client_id=${config.clientId}` +
+    `&response_type=token` +
+    `&scope=openid+email+profile` +
+    `&redirect_uri=https://${config.appDomain}/oauth2/callback` +
+    `&state=${encodeURIComponent(originalUrl)}`;
 
-    return {
-        status: '302',
-        statusDescription: 'Found',
-        headers: {
-            location: [{ key: 'Location', value: loginUrl }],
-            'cache-control': [{ key: 'Cache-Control', value: 'no-store' }],
-        },
-    };
+  return {
+    status: '302',
+    statusDescription: 'Found',
+    headers: {
+      location: [{ key: 'Location', value: loginUrl }],
+      'cache-control': [{ key: 'Cache-Control', value: 'no-store' }],
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -139,37 +156,40 @@ function redirectToLogin(request: CloudFrontRequest, config: CognitoConfig): Clo
 // ---------------------------------------------------------------------------
 
 function escapeHtml(raw: string): string {
-    return raw
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-function handleOAuthCallback(request: CloudFrontRequest, config: CognitoConfig): CloudFrontRequestResult {
-    const params = new URLSearchParams(request.querystring || '');
-    const error = params.get('error');
+function handleOAuthCallback(
+  request: CloudFrontRequest,
+  config: CognitoConfig,
+): CloudFrontRequestResult {
+  const params = new URLSearchParams(request.querystring || '');
+  const error = params.get('error');
 
-    if (error) {
-        // Bug 1 fix: escape user-controlled values before embedding in HTML to prevent XSS.
-        const safeError = escapeHtml(error);
-        const safeDesc = escapeHtml(params.get('error_description') ?? '');
-        return {
-            status: '400',
-            statusDescription: 'Bad Request',
-            headers: { 'content-type': [{ key: 'Content-Type', value: 'text/html; charset=utf-8' }] },
-            body: `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Authentication Error</title></head><body><h1>Authentication Error</h1><p>${safeError}${safeDesc ? ': ' + safeDesc : ''}</p><p><a href="/">Return to home</a></p></body></html>`,
-        };
-    }
+  if (error) {
+    // Bug 1 fix: escape user-controlled values before embedding in HTML to prevent XSS.
+    const safeError = escapeHtml(error);
+    const safeDesc = escapeHtml(params.get('error_description') ?? '');
+    return {
+      status: '400',
+      statusDescription: 'Bad Request',
+      headers: { 'content-type': [{ key: 'Content-Type', value: 'text/html; charset=utf-8' }] },
+      body: `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Authentication Error</title></head><body><h1>Authentication Error</h1><p>${safeError}${safeDesc ? ': ' + safeDesc : ''}</p><p><a href="/">Return to home</a></p></body></html>`,
+    };
+  }
 
-    // Bug 2 fix: with implicit flow, Cognito puts `state` in the URL *fragment* (#),
-    // not the query string. The server cannot read the fragment — only the browser can.
-    // We pass the fallback home URL to the client as a safe JSON constant; the client-side
-    // JS extracts the real `state` value from the fragment alongside the tokens.
-    const fallbackUrl = `https://${config.appDomain}/`;
+  // Bug 2 fix: with implicit flow, Cognito puts `state` in the URL *fragment* (#),
+  // not the query string. The server cannot read the fragment — only the browser can.
+  // We pass the fallback home URL to the client as a safe JSON constant; the client-side
+  // JS extracts the real `state` value from the fragment alongside the tokens.
+  const fallbackUrl = `https://${config.appDomain}/`;
 
-    const html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -235,15 +255,15 @@ function handleOAuthCallback(request: CloudFrontRequest, config: CognitoConfig):
 </body>
 </html>`;
 
-    return {
-        status: '200',
-        statusDescription: 'OK',
-        headers: {
-            'content-type': [{ key: 'Content-Type', value: 'text/html; charset=utf-8' }],
-            'cache-control': [{ key: 'Cache-Control', value: 'no-store' }],
-        },
-        body: html,
-    };
+  return {
+    status: '200',
+    statusDescription: 'OK',
+    headers: {
+      'content-type': [{ key: 'Content-Type', value: 'text/html; charset=utf-8' }],
+      'cache-control': [{ key: 'Cache-Control', value: 'no-store' }],
+    },
+    body: html,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -251,41 +271,43 @@ function handleOAuthCallback(request: CloudFrontRequest, config: CognitoConfig):
 // ---------------------------------------------------------------------------
 
 export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFrontRequestResult> => {
-    const request = event.Records[0].cf.request;
-    const uri = request.uri;
+  const request = event.Records[0].cf.request;
+  const uri = request.uri;
 
-    console.log('viewer-request', uri);
+  console.log('viewer-request', uri);
 
-    // Always allow the error page through
-    if (uri === '/error.html') return request;
+  // Always allow the error page through
+  if (uri === '/error.html') return request;
 
-    // Handle OAuth2 callback
-    if (uri === '/oauth2/callback') {
-        const config = await loadConfig();
-        return handleOAuthCallback(request, config);
-    }
-
-    // Rewrite directory paths to index.html
-    if (uri.endsWith('/')) {
-        request.uri = uri + 'index.html';
-    }
-
-    // Load config and validate token
+  // Handle OAuth2 callback
+  if (uri === '/oauth2/callback') {
     const config = await loadConfig();
-    const token = extractToken(request, config);
+    return handleOAuthCallback(request, config);
+  }
 
-    if (!token) {
-        console.log('No token — redirecting to login');
-        return redirectToLogin(request, config);
-    }
+  // Rewrite directory paths to index.html
+  if (uri.endsWith('/')) {
+    request.uri = uri + 'index.html';
+  }
 
-    try {
-        const payload = await verifyToken(token, config);
-        // Attach the authenticated user's email as a forwarded header for logging
-        request.headers['x-auth-email'] = [{ key: 'X-Auth-Email', value: String(payload['email'] ?? 'unknown') }];
-        return request;
-    } catch (err) {
-        console.error('Token validation failed', err);
-        return redirectToLogin(request, config);
-    }
+  // Load config and validate token
+  const config = await loadConfig();
+  const token = extractToken(request, config);
+
+  if (!token) {
+    console.log('No token — redirecting to login');
+    return redirectToLogin(request, config);
+  }
+
+  try {
+    const payload = await verifyToken(token, config);
+    // Attach the authenticated user's email as a forwarded header for logging
+    request.headers['x-auth-email'] = [
+      { key: 'X-Auth-Email', value: String(payload['email'] ?? 'unknown') },
+    ];
+    return request;
+  } catch (err) {
+    console.error('Token validation failed', err);
+    return redirectToLogin(request, config);
+  }
 };
