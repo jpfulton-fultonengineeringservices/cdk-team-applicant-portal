@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
 import { ApplicantPortalStack } from '../lib/applicant-portal-stack.js';
+import { normalizeCompanyName } from '../lib/config/portal-config.js';
 
 function makeStack(overrides: Record<string, string> = {}): cdk.Stack {
     const app = new cdk.App({
@@ -18,6 +19,41 @@ function makeStack(overrides: Record<string, string> = {}): cdk.Stack {
         certificateArn: overrides['certificateArn'],
     });
 }
+
+describe('normalizeCompanyName', () => {
+    test('multi-word with comma and uppercase -> lowercase-with-dashes', () => {
+        expect(normalizeCompanyName('Fulton Engineering Services, LLC')).toBe('fulton-engineering-services-llc');
+    });
+
+    test('surrounding whitespace and trailing period are stripped', () => {
+        expect(normalizeCompanyName('  Acme Corp.  ')).toBe('acme-corp');
+    });
+
+    test('apostrophe and ampersand are stripped without leaving double hyphens', () => {
+        expect(normalizeCompanyName("O'Brien & Associates")).toBe('obrien-associates');
+    });
+
+    test('already-valid slug passes through unchanged', () => {
+        expect(normalizeCompanyName('acme')).toBe('acme');
+    });
+
+    test('already-valid slug with hyphens passes through unchanged', () => {
+        expect(normalizeCompanyName('my-company')).toBe('my-company');
+    });
+});
+
+describe('validateConfig companyName normalization', () => {
+    test('throws when companyName normalizes to an empty string', () => {
+        expect(() => {
+            const app = new cdk.App();
+            new ApplicantPortalStack(app, 'TestStack', {
+                env: { account: '123456789012', region: 'us-east-1' },
+                dnsName: 'apply.test.example.com',
+                companyName: '!!!',
+            });
+        }).toThrow(/"companyName" could not be normalized/);
+    });
+});
 
 describe('ApplicantPortalStack', () => {
     let template: Template;
