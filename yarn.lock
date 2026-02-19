@@ -2151,10 +2151,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cookie@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@types/cookie@npm:0.6.0"
-  checksum: 10c0/5b326bd0188120fb32c0be086b141b1481fec9941b76ad537f9110e10d61ee2636beac145463319c71e4be67a17e85b81ca9e13ceb6e3bb63b93d16824d6c149
+"@types/cookie@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@types/cookie@npm:1.0.0"
+  dependencies:
+    cookie: "npm:*"
+  checksum: 10c0/d471539d289c6d9c6ab2986a881b10a55c9e489c2d35da0d1bdbbabdca9a8125de4cbc007bb525060265c64c14288c690f991ba6d84eea8c6ddacaa150179557
   languageName: node
   linkType: hard
 
@@ -2853,7 +2855,7 @@ __metadata:
     "@aws-sdk/client-ssm": "npm:^3.993.0"
     "@eslint/js": "npm:^10.0.1"
     "@types/aws-lambda": "npm:^8.10.145"
-    "@types/cookie": "npm:^0.6.0"
+    "@types/cookie": "npm:^1.0.0"
     "@types/jest": "npm:^29.5.14"
     "@types/jsonwebtoken": "npm:^9.0.6"
     "@types/node": "npm:25.3.0"
@@ -2861,7 +2863,7 @@ __metadata:
     aws-cdk-lib: "npm:2.238.0"
     cdk-nag: "npm:^2.28.0"
     constructs: "npm:^10.5.1"
-    cookie: "npm:^0.6.0"
+    cookie: "npm:^1.1.1"
     esbuild: "npm:^0.24.0"
     eslint: "npm:^10.0.0"
     eslint-config-prettier: "npm:^10.1.8"
@@ -2976,10 +2978,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "cookie@npm:0.6.0"
-  checksum: 10c0/f2318b31af7a31b4ddb4a678d024514df5e705f9be5909a192d7f116cfb6d45cbacf96a473fa733faa95050e7cff26e7832bb3ef94751592f1387b71c8956686
+"cookie@npm:*, cookie@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "cookie@npm:1.1.1"
+  checksum: 10c0/79c4ddc0fcad9c4f045f826f42edf54bcc921a29586a4558b0898277fa89fb47be95bc384c2253f493af7b29500c830da28341274527328f18eba9f58afa112c
   languageName: node
   linkType: hard
 
