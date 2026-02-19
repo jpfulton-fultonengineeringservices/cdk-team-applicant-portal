@@ -10,8 +10,8 @@ permissions:
 jobs:
   dco:
     name: DCO sign-off check
-    # Dependabot PRs are bot-authored; sign-off is not applicable.
-    if: github.actor != 'dependabot[bot]'
+    # Bot-authored PRs (Dependabot, release-please) do not carry sign-offs.
+    if: github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Check DCO sign-off
