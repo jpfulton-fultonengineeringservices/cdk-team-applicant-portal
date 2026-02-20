@@ -150,7 +150,7 @@ fi
 # AWS CLI check, credentials, and stack resolution
 # ---------------------------------------------------------------------------
 
-require_aws_cli
+ensure_dependencies
 build_profile_args
 verify_aws_credentials
 resolve_portal_stack
@@ -173,12 +173,6 @@ if [[ "${DRY_RUN}" == true ]]; then
   echo "[dry-run] All inputs valid. No users listed."
   exit 0
 fi
-
-# ---------------------------------------------------------------------------
-# Verify JSON parser availability
-# ---------------------------------------------------------------------------
-
-require_json_parser
 
 # ---------------------------------------------------------------------------
 # Pagination: collect all users

@@ -122,7 +122,7 @@ fi
 # AWS CLI check, credentials, and stack resolution
 # ---------------------------------------------------------------------------
 
-require_aws_cli
+ensure_dependencies
 build_profile_args
 verify_aws_credentials
 resolve_portal_stack

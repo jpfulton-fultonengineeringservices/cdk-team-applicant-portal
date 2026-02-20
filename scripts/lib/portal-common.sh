@@ -16,6 +16,10 @@
 #   STACK_NAME         Full stack name — set by resolve_portal_stack
 #   DISCOVERED_STACKS  Array of stack names — set by discover_portal_stacks
 
+# Source the dependency-management library (lives alongside this file).
+_PORTAL_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${_PORTAL_LIB_DIR}/portal-deps.sh"
+
 # ---------------------------------------------------------------------------
 # normalize_company_name <raw>
 #

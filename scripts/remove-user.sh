@@ -107,7 +107,7 @@ validate_email "${EMAIL}"
 # AWS CLI check, credentials, and stack resolution
 # ---------------------------------------------------------------------------
 
-require_aws_cli
+ensure_dependencies
 build_profile_args
 verify_aws_credentials
 resolve_portal_stack
@@ -145,8 +145,6 @@ if ! USER_JSON=$(aws cognito-idp admin-get-user \
   echo "       ${USER_JSON}" >&2
   exit 1
 fi
-
-require_json_parser
 
 GIVEN_NAME="$(extract_user_attr "${USER_JSON}" "given_name")"
 FAMILY_NAME="$(extract_user_attr "${USER_JSON}" "family_name")"
