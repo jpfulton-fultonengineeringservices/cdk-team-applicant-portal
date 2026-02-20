@@ -28,7 +28,7 @@
 import { CloudFrontRequestEvent, CloudFrontRequestResult, CloudFrontRequest } from 'aws-lambda';
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
-import cookie from 'cookie';
+import * as cookie from 'cookie';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 
 // ---------------------------------------------------------------------------
