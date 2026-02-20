@@ -30,8 +30,8 @@ Required:
   -e, --email <email>    Email address of the account to remove
 
 Options:
-  -c, --company <name>   Company name — auto-detected from cdk.json, or discovered
-                         from deployed CloudFormation stacks if omitted
+  -c, --company <name>   Company name — auto-discovered from deployed CloudFormation
+                         stacks, or detected from cdk.json if omitted
   -p, --profile <name>   AWS CLI profile to use
   -r, --region <region>  AWS region (default: ${DEFAULT_REGION})
       --disable          Disable the account instead of deleting it (reversible)
@@ -107,11 +107,10 @@ validate_email "${EMAIL}"
 # AWS CLI check, credentials, and stack resolution
 # ---------------------------------------------------------------------------
 
-resolve_company_name
 require_aws_cli
 build_profile_args
 verify_aws_credentials
-resolve_stack_name
+resolve_portal_stack
 print_stack_info
 
 # ---------------------------------------------------------------------------
@@ -136,7 +135,7 @@ if ! USER_JSON=$(aws cognito-idp admin-get-user \
     --region "${REGION}" \
     "${PROFILE_ARGS[@]}" \
     --output json 2>&1); then
-  if echo "${USER_JSON}" | grep -qi "UserNotFoundException\|User does not exist"; then
+  if echo "${USER_JSON}" | grep -qiE "UserNotFoundException|User does not exist"; then
     echo "ERROR: No user with email '${EMAIL}' exists in this User Pool." >&2
     echo "       Run '${SCRIPT_NAME%remove-user.sh}list-users.sh' to see current users." >&2
     exit 1

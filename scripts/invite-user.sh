@@ -32,8 +32,8 @@ Required:
   -l, --last  <name>     Family (last) name           [not required with --resend]
 
 Options:
-  -c, --company <name>   Company name — auto-detected from cdk.json, or discovered
-                         from deployed CloudFormation stacks if omitted
+  -c, --company <name>   Company name — auto-discovered from deployed CloudFormation
+                         stacks, or detected from cdk.json if omitted
   -p, --profile <name>   AWS CLI profile to use
   -r, --region <region>  AWS region (default: ${DEFAULT_REGION})
       --resend           Resend invitation to a user whose invite expired
@@ -99,8 +99,6 @@ done
 # Validation
 # ---------------------------------------------------------------------------
 
-resolve_company_name
-
 if [[ -z "${EMAIL}" ]]; then
   echo "ERROR: --email is required." >&2
   exit 1
@@ -127,7 +125,7 @@ fi
 require_aws_cli
 build_profile_args
 verify_aws_credentials
-resolve_stack_name
+resolve_portal_stack
 print_stack_info
 
 # ---------------------------------------------------------------------------

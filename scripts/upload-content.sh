@@ -28,8 +28,8 @@ invalidation so changes are live within ~60 seconds.
 
 Options:
   -d, --content <dir>    Local content directory (default: ${DEFAULT_CONTENT_DIR})
-  -c, --company <name>   Company name — auto-detected from cdk.json, or discovered
-                         from deployed CloudFormation stacks if omitted
+  -c, --company <name>   Company name — auto-discovered from deployed CloudFormation
+                         stacks, or detected from cdk.json if omitted
   -p, --profile <name>   AWS CLI profile to use
   -r, --region <region>  AWS region (default: ${DEFAULT_REGION})
       --no-delete        Do not remove files from S3 that are absent locally
@@ -100,8 +100,6 @@ done
 # Validation
 # ---------------------------------------------------------------------------
 
-resolve_company_name
-
 if [[ ! -d "${CONTENT_DIR}" ]]; then
   echo "ERROR: Content directory '${CONTENT_DIR}' does not exist." >&2
   echo "       Pass a different path with --content <dir>." >&2
@@ -127,7 +125,7 @@ fi
 require_aws_cli
 build_profile_args
 verify_aws_credentials
-resolve_stack_name
+resolve_portal_stack
 print_stack_info
 
 # ---------------------------------------------------------------------------

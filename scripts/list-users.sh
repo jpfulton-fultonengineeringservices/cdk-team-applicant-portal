@@ -25,8 +25,8 @@ List applicant accounts in the Cognito User Pool. Supports filtering,
 multiple output formats, and composable quiet output for piping.
 
 Options:
-  -c, --company <name>          Company name — auto-detected from cdk.json, or discovered
-                                from deployed CloudFormation stacks if omitted
+  -c, --company <name>          Company name — auto-discovered from deployed CloudFormation
+                                stacks, or detected from cdk.json if omitted
   -p, --profile <name>          AWS CLI profile to use
   -r, --region <region>         AWS region (default: ${DEFAULT_REGION})
       --format <fmt>            Output format: table (default), csv, json, quiet
@@ -82,6 +82,7 @@ FILTER_STATUS=""
 FILTER_EMAIL=""
 LIMIT=""
 COUNT_ONLY=false
+YES=false
 DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
@@ -149,11 +150,10 @@ fi
 # AWS CLI check, credentials, and stack resolution
 # ---------------------------------------------------------------------------
 
-resolve_company_name
 require_aws_cli
 build_profile_args
 verify_aws_credentials
-resolve_stack_name
+resolve_portal_stack
 print_stack_info
 
 # ---------------------------------------------------------------------------
