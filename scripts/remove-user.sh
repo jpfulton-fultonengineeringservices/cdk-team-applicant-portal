@@ -72,10 +72,10 @@ DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -e|--email)   EMAIL="$2";        shift 2 ;;
-    -c|--company) COMPANY_NAME="$2"; shift 2 ;;
-    -p|--profile) AWS_PROFILE="$2";  shift 2 ;;
-    -r|--region)  REGION="$2";       shift 2 ;;
+    -e|--email)   require_arg "$1" "${2:-}" $#; EMAIL="$2";        shift 2 ;;
+    -c|--company) require_arg "$1" "${2:-}" $#; COMPANY_NAME="$2"; shift 2 ;;
+    -p|--profile) require_arg "$1" "${2:-}" $#; AWS_PROFILE="$2";  shift 2 ;;
+    -r|--region)  require_arg "$1" "${2:-}" $#; REGION="$2";       shift 2 ;;
     --disable)    DISABLE=true;       shift   ;;
     -y|--yes)     YES=true;           shift   ;;
     --dry-run)    DRY_RUN=true;       shift   ;;
@@ -146,51 +146,18 @@ if ! USER_JSON=$(aws cognito-idp admin-get-user \
   exit 1
 fi
 
-# Parse user fields — use jq when available, node otherwise
-get_user_attr() {
-  local attr_name="$1"
-  if command -v jq &>/dev/null; then
-    echo "${USER_JSON}" \
-      | jq -r --arg n "${attr_name}" \
-          '.UserAttributes[]? | select(.Name == $n) | .Value // ""' \
-          2>/dev/null || true
-  else
-    node -e "
-      try {
-        const u = JSON.parse(process.argv[1]);
-        const attrs = u.UserAttributes || [];
-        const a = attrs.find(x => x.Name === process.argv[2]);
-        process.stdout.write(a ? (a.Value || '') : '');
-      } catch(e) {}
-    " "${USER_JSON}" "${attr_name}" 2>/dev/null || true
-  fi
-}
+require_json_parser
 
-get_user_field() {
-  local field="$1"
-  if command -v jq &>/dev/null; then
-    echo "${USER_JSON}" | jq -r ".${field} // \"\"" 2>/dev/null || true
-  else
-    node -e "
-      try {
-        const u = JSON.parse(process.argv[1]);
-        const v = u[process.argv[2]];
-        process.stdout.write(v !== undefined && v !== null ? String(v) : '');
-      } catch(e) {}
-    " "${USER_JSON}" "${field}" 2>/dev/null || true
-  fi
-}
-
-GIVEN_NAME="$(get_user_attr "given_name")"
-FAMILY_NAME="$(get_user_attr "family_name")"
+GIVEN_NAME="$(extract_user_attr "${USER_JSON}" "given_name")"
+FAMILY_NAME="$(extract_user_attr "${USER_JSON}" "family_name")"
 FULL_NAME="${GIVEN_NAME} ${FAMILY_NAME}"
 FULL_NAME="${FULL_NAME## }"
 FULL_NAME="${FULL_NAME%% }"
 
-USER_STATUS="$(get_user_field "UserStatus")"
-USER_CREATED="$(get_user_field "UserCreateDate")"
-USER_ENABLED="$(get_user_field "Enabled")"
-USER_MODIFIED="$(get_user_field "UserLastModifiedDate")"
+USER_STATUS="$(extract_user_field "${USER_JSON}" "UserStatus")"
+USER_CREATED="$(extract_user_field "${USER_JSON}" "UserCreateDate")"
+USER_ENABLED="$(extract_user_field "${USER_JSON}" "Enabled")"
+USER_MODIFIED="$(extract_user_field "${USER_JSON}" "UserLastModifiedDate")"
 
 # MFA preferences (non-critical; show if present)
 MFA_OPTIONS=""

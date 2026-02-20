@@ -73,12 +73,12 @@ DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -e|--email)   EMAIL="$2";        shift 2 ;;
-    -f|--first)   FIRST_NAME="$2";   shift 2 ;;
-    -l|--last)    LAST_NAME="$2";    shift 2 ;;
-    -c|--company) COMPANY_NAME="$2"; shift 2 ;;
-    -p|--profile) AWS_PROFILE="$2";  shift 2 ;;
-    -r|--region)  REGION="$2";       shift 2 ;;
+    -e|--email)   require_arg "$1" "${2:-}" $#; EMAIL="$2";        shift 2 ;;
+    -f|--first)   require_arg "$1" "${2:-}" $#; FIRST_NAME="$2";   shift 2 ;;
+    -l|--last)    require_arg "$1" "${2:-}" $#; LAST_NAME="$2";    shift 2 ;;
+    -c|--company) require_arg "$1" "${2:-}" $#; COMPANY_NAME="$2"; shift 2 ;;
+    -p|--profile) require_arg "$1" "${2:-}" $#; AWS_PROFILE="$2";  shift 2 ;;
+    -r|--region)  require_arg "$1" "${2:-}" $#; REGION="$2";       shift 2 ;;
     --resend)     RESEND=true;        shift   ;;
     -y|--yes)     YES=true;           shift   ;;
     --dry-run)    DRY_RUN=true;       shift   ;;

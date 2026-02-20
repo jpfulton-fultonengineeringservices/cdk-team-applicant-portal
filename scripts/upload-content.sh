@@ -75,10 +75,10 @@ DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -d|--content)  CONTENT_DIR="$2";  shift 2 ;;
-    -c|--company)  COMPANY_NAME="$2"; shift 2 ;;
-    -p|--profile)  AWS_PROFILE="$2";  shift 2 ;;
-    -r|--region)   REGION="$2";       shift 2 ;;
+    -d|--content)  require_arg "$1" "${2:-}" $#; CONTENT_DIR="$2";  shift 2 ;;
+    -c|--company)  require_arg "$1" "${2:-}" $#; COMPANY_NAME="$2"; shift 2 ;;
+    -p|--profile)  require_arg "$1" "${2:-}" $#; AWS_PROFILE="$2";  shift 2 ;;
+    -r|--region)   require_arg "$1" "${2:-}" $#; REGION="$2";       shift 2 ;;
     --no-delete)   NO_DELETE=true;     shift   ;;
     --wait)        WAIT=true;          shift   ;;
     -y|--yes)      YES=true;           shift   ;;

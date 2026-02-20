@@ -51,8 +51,8 @@ detect_company_from_cdk_json() {
         raw=$(jq -r '.context.companyName // empty' "${cdk_json}" 2>/dev/null || true)
       elif command -v node &>/dev/null; then
         raw=$(node -e \
-          "try{const c=require('${cdk_json}');const v=(c.context||{}).companyName;if(v)process.stdout.write(v)}catch(e){}" \
-          2>/dev/null || true)
+          "try{const c=require(process.argv[1]);const v=(c.context||{}).companyName;if(v)process.stdout.write(v)}catch(e){}" \
+          "${cdk_json}" 2>/dev/null || true)
       fi
       if [[ -n "${raw}" ]]; then
         echo "${raw}"
@@ -387,14 +387,14 @@ get_stack_output() {
   local suffix="$1"
   local export_name="${STACK_NAME}-${suffix}"
 
-  local value
+  local value=""
   if [[ -n "${_STACK_DESCRIBE_CACHE}" ]]; then
     if command -v jq &>/dev/null; then
       value=$(echo "${_STACK_DESCRIBE_CACHE}" \
         | jq -r --arg en "${export_name}" \
             '.Stacks[0].Outputs[] | select(.ExportName == $en) | .OutputValue // ""' \
             2>/dev/null || true)
-    else
+    elif command -v node &>/dev/null; then
       value=$(node -e "
         try {
           const d = JSON.parse(process.argv[1]);
@@ -403,7 +403,11 @@ get_stack_output() {
         } catch(e) {}
       " "${_STACK_DESCRIBE_CACHE}" "${export_name}" 2>/dev/null || true)
     fi
-  else
+  fi
+
+  # Fall back to a direct AWS CLI call when the cache is empty or no JSON
+  # parser was available to extract the value from it.
+  if [[ -z "${value}" || "${value}" == "None" ]]; then
     value=$(aws cloudformation describe-stacks \
       --stack-name "${STACK_NAME}" \
       --region "${REGION}" \
@@ -419,6 +423,90 @@ get_stack_output() {
   fi
 
   echo "${value}"
+}
+
+# ---------------------------------------------------------------------------
+# require_arg <flag> <value> <remaining-arg-count>
+#
+# Validates that a flag (e.g. --email) was followed by a value. Call from
+# inside the argument-parsing loop as:
+#   require_arg "$1" "${2:-}" $#
+# Exits with a clear message when the value is missing instead of letting
+# bash crash with "unbound variable" under set -u.
+# ---------------------------------------------------------------------------
+require_arg() {
+  local flag="$1"
+  local value="$2"
+  local argc="$3"
+  if [[ ${argc} -lt 2 || -z "${value}" || "${value}" == -* ]]; then
+    echo "ERROR: ${flag} requires a value." >&2
+    exit 1
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# require_json_parser
+#
+# Exits with a clear error if neither jq nor node is available. Call once
+# before entering code paths that parse JSON.
+# ---------------------------------------------------------------------------
+require_json_parser() {
+  if ! command -v jq &>/dev/null && ! command -v node &>/dev/null; then
+    echo "ERROR: Neither 'jq' nor 'node' is installed." >&2
+    echo "       Install jq (https://jqlang.github.io/jq/) or Node.js to continue." >&2
+    exit 1
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# extract_user_attr <user-json> <attribute-name>
+#
+# Extracts a named attribute from a Cognito user JSON object (works with
+# both "Attributes" from list-users and "UserAttributes" from admin-get-user).
+# Prints the value or empty string if absent. Uses jq when available, node
+# otherwise.
+# ---------------------------------------------------------------------------
+extract_user_attr() {
+  local json="$1"
+  local attr_name="$2"
+  if command -v jq &>/dev/null; then
+    echo "${json}" \
+      | jq -r --arg n "${attr_name}" \
+          '(.Attributes // .UserAttributes // [])[] | select(.Name == $n) | .Value // ""' \
+          2>/dev/null || true
+  else
+    node -e "
+      try {
+        const u = JSON.parse(process.argv[1]);
+        const attrs = u.Attributes || u.UserAttributes || [];
+        const a = attrs.find(x => x.Name === process.argv[2]);
+        process.stdout.write(a ? (a.Value || '') : '');
+      } catch(e) {}
+    " "${json}" "${attr_name}" 2>/dev/null || true
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# extract_user_field <user-json> <field-name>
+#
+# Extracts a top-level field from a Cognito user JSON object (e.g.
+# UserStatus, Enabled, UserCreateDate). Prints the value or empty string
+# if absent.
+# ---------------------------------------------------------------------------
+extract_user_field() {
+  local json="$1"
+  local field="$2"
+  if command -v jq &>/dev/null; then
+    echo "${json}" | jq -r ".${field} // \"\"" 2>/dev/null || true
+  else
+    node -e "
+      try {
+        const u = JSON.parse(process.argv[1]);
+        const v = u[process.argv[2]];
+        process.stdout.write(v !== undefined && v !== null ? String(v) : '');
+      } catch(e) {}
+    " "${json}" "${field}" 2>/dev/null || true
+  fi
 }
 
 # ---------------------------------------------------------------------------

@@ -87,13 +87,13 @@ DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -c|--company) COMPANY_NAME="$2"; shift 2 ;;
-    -p|--profile) AWS_PROFILE="$2";  shift 2 ;;
-    -r|--region)  REGION="$2";       shift 2 ;;
-    --format)     FORMAT="$2";       shift 2 ;;
-    --status)     FILTER_STATUS="$2"; shift 2 ;;
-    --email)      FILTER_EMAIL="$2"; shift 2 ;;
-    --limit)      LIMIT="$2";        shift 2 ;;
+    -c|--company) require_arg "$1" "${2:-}" $#; COMPANY_NAME="$2"; shift 2 ;;
+    -p|--profile) require_arg "$1" "${2:-}" $#; AWS_PROFILE="$2";  shift 2 ;;
+    -r|--region)  require_arg "$1" "${2:-}" $#; REGION="$2";       shift 2 ;;
+    --format)     require_arg "$1" "${2:-}" $#; FORMAT="$2";       shift 2 ;;
+    --status)     require_arg "$1" "${2:-}" $#; FILTER_STATUS="$2"; shift 2 ;;
+    --email)      require_arg "$1" "${2:-}" $#; FILTER_EMAIL="$2"; shift 2 ;;
+    --limit)      require_arg "$1" "${2:-}" $#; LIMIT="$2";        shift 2 ;;
     --count)      COUNT_ONLY=true;   shift   ;;
     --dry-run)    DRY_RUN=true;      shift   ;;
     -h|--help)    usage; exit 0      ;;
@@ -175,47 +175,10 @@ if [[ "${DRY_RUN}" == true ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Helpers for JSON parsing (jq or node fallback)
+# Verify JSON parser availability
 # ---------------------------------------------------------------------------
 
-# extract_field_from_user_json <json> <field>
-# Extracts a string field from a single Cognito user JSON object. Returns
-# empty string if the field is absent. Uses jq when available, node otherwise.
-extract_attr() {
-  local json="$1"
-  local attr_name="$2"
-  if command -v jq &>/dev/null; then
-    echo "${json}" \
-      | jq -r --arg n "${attr_name}" \
-          '.Attributes[]? | select(.Name == $n) | .Value // ""' \
-          2>/dev/null || true
-  else
-    node -e "
-      try {
-        const u = JSON.parse(process.argv[1]);
-        const attrs = u.Attributes || u.UserAttributes || [];
-        const a = attrs.find(x => x.Name === process.argv[2]);
-        process.stdout.write(a ? (a.Value || '') : '');
-      } catch(e) {}
-    " "${json}" "${attr_name}" 2>/dev/null || true
-  fi
-}
-
-extract_field() {
-  local json="$1"
-  local field="$2"
-  if command -v jq &>/dev/null; then
-    echo "${json}" | jq -r ".${field} // \"\"" 2>/dev/null || true
-  else
-    node -e "
-      try {
-        const u = JSON.parse(process.argv[1]);
-        const v = u[process.argv[2]];
-        process.stdout.write(v !== undefined && v !== null ? String(v) : '');
-      } catch(e) {}
-    " "${json}" "${field}" 2>/dev/null || true
-  fi
-}
+require_json_parser
 
 # ---------------------------------------------------------------------------
 # Pagination: collect all users
@@ -238,12 +201,17 @@ LIST_ARGS=(
 COGNITO_FILTER=""
 POSTFILTER_STATUS=""
 
+# Escape backslashes and double quotes in the email prefix so the Cognito
+# filter expression stays syntactically valid for edge-case email patterns.
+SAFE_EMAIL="${FILTER_EMAIL//\\/\\\\}"
+SAFE_EMAIL="${SAFE_EMAIL//\"/\\\"}"
+
 if [[ -n "${FILTER_EMAIL}" && -n "${FILTER_STATUS}" ]]; then
   # Email filter server-side; status post-filtered
-  COGNITO_FILTER="email ^= \"${FILTER_EMAIL}\""
+  COGNITO_FILTER="email ^= \"${SAFE_EMAIL}\""
   POSTFILTER_STATUS="${FILTER_STATUS}"
 elif [[ -n "${FILTER_EMAIL}" ]]; then
-  COGNITO_FILTER="email ^= \"${FILTER_EMAIL}\""
+  COGNITO_FILTER="email ^= \"${SAFE_EMAIL}\""
 elif [[ -n "${FILTER_STATUS}" ]]; then
   COGNITO_FILTER="status = \"${FILTER_STATUS}\""
 fi
@@ -337,17 +305,17 @@ while [[ ${idx} -lt ${USER_COUNT} ]]; do
     " "${RAW_PAGES}" "${idx}" 2>/dev/null || echo "{}")
   fi
 
-  email="$(extract_attr "${USER_JSON}" "email")"
-  given="$(extract_attr "${USER_JSON}" "given_name")"
-  family="$(extract_attr "${USER_JSON}" "family_name")"
+  email="$(extract_user_attr "${USER_JSON}" "email")"
+  given="$(extract_user_attr "${USER_JSON}" "given_name")"
+  family="$(extract_user_attr "${USER_JSON}" "family_name")"
   name="${given} ${family}"
   name="${name## }"
   name="${name%% }"
-  status="$(extract_field "${USER_JSON}" "UserStatus")"
-  created="$(extract_field "${USER_JSON}" "UserCreateDate")"
+  status="$(extract_user_field "${USER_JSON}" "UserStatus")"
+  created="$(extract_user_field "${USER_JSON}" "UserCreateDate")"
   # Trim to date portion only (first 10 chars of ISO timestamp)
   created="${created:0:10}"
-  enabled_raw="$(extract_field "${USER_JSON}" "Enabled")"
+  enabled_raw="$(extract_user_field "${USER_JSON}" "Enabled")"
   if [[ "${enabled_raw}" == "true" || "${enabled_raw}" == "True" ]]; then
     enabled="yes"
   else
