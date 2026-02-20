@@ -142,9 +142,9 @@ select_stack_interactive() {
     exit 1
   fi
 
-  echo ""
-  echo "Multiple ApplicantPortal stacks found in ${REGION}:"
-  echo ""
+  echo "" >&2
+  echo "Multiple ApplicantPortal stacks found in ${REGION}:" >&2
+  echo "" >&2
 
   local i=0
   while [[ ${i} -lt ${count} ]]; do
@@ -153,14 +153,14 @@ select_stack_interactive() {
     url="$(_get_portal_url_for_stack "${sname}")"
     local display_num=$((i + 1))
     if [[ -n "${url}" ]]; then
-      printf '  %d) %s  (%s)\n' "${display_num}" "${sname}" "${url}"
+      printf '  %d) %s  (%s)\n' "${display_num}" "${sname}" "${url}" >&2
     else
-      printf '  %d) %s\n' "${display_num}" "${sname}"
+      printf '  %d) %s\n' "${display_num}" "${sname}" >&2
     fi
     i=$((i + 1))
   done
 
-  echo ""
+  echo "" >&2
 
   local selection=""
   while true; do
@@ -217,14 +217,14 @@ resolve_portal_stack() {
   fi
 
   # --- Path 2: discover from CloudFormation ---
-  echo "Searching for deployed ApplicantPortal stacks in ${REGION}..."
+  echo "Searching for deployed ApplicantPortal stacks in ${REGION}..." >&2
   if discover_portal_stacks; then
     local count=${#DISCOVERED_STACKS[@]}
 
     if [[ ${count} -eq 1 ]]; then
       STACK_NAME="${DISCOVERED_STACKS[0]}"
       COMPANY_NAME="${STACK_NAME#ApplicantPortal-}"
-      echo "Found: ${STACK_NAME}"
+      echo "Found: ${STACK_NAME}" >&2
       return 0
     fi
 
@@ -242,11 +242,11 @@ resolve_portal_stack() {
   fi
 
   # --- Path 3: fallback to cdk.json ---
-  echo "No deployed stacks found via CloudFormation. Checking cdk.json..."
+  echo "No deployed stacks found via CloudFormation. Checking cdk.json..." >&2
   local detected
   detected="$(detect_company_from_cdk_json || true)"
   if [[ -n "${detected}" ]]; then
-    echo "Auto-detected company from cdk.json: ${detected}"
+    echo "Auto-detected company from cdk.json: ${detected}" >&2
     COMPANY_NAME="$(normalize_company_name "${detected}")"
     if [[ -z "${COMPANY_NAME}" ]]; then
       echo "ERROR: Company name from cdk.json could not be normalized to a valid slug." >&2
@@ -302,7 +302,7 @@ build_profile_args() {
 # Sets globals:  ACCOUNT_ID
 # ---------------------------------------------------------------------------
 verify_aws_credentials() {
-  echo "Verifying AWS credentials..."
+  echo "Verifying AWS credentials..." >&2
   local identity
   if ! identity=$(aws sts get-caller-identity --region "${REGION}" "${PROFILE_ARGS[@]}" 2>&1); then
     echo "ERROR: AWS credentials check failed. Is your profile/environment configured?" >&2
@@ -321,16 +321,16 @@ verify_aws_credentials() {
 # Reads globals: STACK_NAME, ACCOUNT_ID, REGION, PROFILE_ARGS
 # ---------------------------------------------------------------------------
 print_stack_info() {
-  echo ""
-  echo "Stack:   ${STACK_NAME}"
-  echo "Account: ${ACCOUNT_ID}"
-  echo "Region:  ${REGION}"
+  echo "" >&2
+  echo "Stack:   ${STACK_NAME}" >&2
+  echo "Account: ${ACCOUNT_ID}" >&2
+  echo "Region:  ${REGION}" >&2
   local portal_url
   portal_url="$(_get_portal_url_for_stack "${STACK_NAME}")"
   if [[ -n "${portal_url}" ]]; then
-    echo "Portal:  ${portal_url}"
+    echo "Portal:  ${portal_url}" >&2
   fi
-  echo ""
+  echo "" >&2
 }
 
 # ---------------------------------------------------------------------------
