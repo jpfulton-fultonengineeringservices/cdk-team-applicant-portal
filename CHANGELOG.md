@@ -6,6 +6,13 @@ This file is automatically maintained by [release-please](https://github.com/goo
 Do not edit it manually — commit messages following [Conventional Commits](https://www.conventionalcommits.org/)
 drive the version bumps and changelog entries.
 
+## [1.1.1](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/compare/v1.1.0...v1.1.1) (2026-02-20)
+
+
+### Bug Fixes
+
+* **edge:** resolve cookie module import causing 503 on authenticated requests ([#13](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/issues/13)) ([b549a52](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/commit/b549a522a7704cc3fb5c57af6632cc2828a0ed90))
+
 ## [1.1.0](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/compare/v1.0.0...v1.1.0) (2026-02-19)
 
 
