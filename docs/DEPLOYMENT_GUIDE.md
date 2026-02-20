@@ -224,12 +224,17 @@ TTL:   300
 
 Once DNS is resolving correctly:
 
+> **Note:** All management scripts auto-discover deployed `ApplicantPortal-*` stacks via
+> CloudFormation. You do not need to run them from the project root or have `cdk.json`
+> configured. If multiple portal stacks exist in the account, you will be prompted to
+> choose one (or pass `--company` explicitly).
+
 **1. Invite applicants**
 
 Applicants cannot self-register. An admin creates each user:
 
 ```bash
-# Company name is auto-detected from cdk.json when run from the project root
+# Stack is auto-discovered from CloudFormation
 ./scripts/invite-user.sh --email applicant@example.com --first Jane --last Smith
 
 # Or pass it explicitly alongside an AWS profile

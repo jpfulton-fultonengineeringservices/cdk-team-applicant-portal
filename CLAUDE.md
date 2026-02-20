@@ -52,8 +52,11 @@ yarn cdk destroy
 ## Operational Scripts
 
 All scripts share a common library at `scripts/lib/portal-common.sh` (sourced, not
-executed directly) which handles company/stack resolution, credential verification,
-and other shared boilerplate. Each script supports `--help`, `--dry-run`, and
+executed directly) which handles stack discovery, credential verification, and other
+shared boilerplate. Scripts auto-discover deployed `ApplicantPortal-*` stacks via
+CloudFormation — no local `cdk.json` or `--company` flag required when a single stack
+exists. If multiple stacks are found, an interactive menu is presented (or `--company`
+is required in CI/`--yes` mode). Each script supports `--help`, `--dry-run`, and
 `--company` / `--profile` / `--region` flags.
 
 ```bash
@@ -62,7 +65,7 @@ and other shared boilerplate. Each script supports `--help`, `--dry-run`, and
 # Resend an expired invitation
 ./scripts/invite-user.sh --resend --email applicant@example.com --company acme
 
-# List users (table view, company auto-detected from cdk.json)
+# List users (table view, stack auto-discovered from CloudFormation)
 ./scripts/list-users.sh
 # Filter and format options
 ./scripts/list-users.sh --status FORCE_CHANGE_PASSWORD --format quiet
