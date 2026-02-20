@@ -51,12 +51,34 @@ yarn cdk destroy
 
 ## Operational Scripts
 
+All scripts share a common library at `scripts/lib/portal-common.sh` (sourced, not
+executed directly) which handles company/stack resolution, credential verification,
+and other shared boilerplate. Each script supports `--help`, `--dry-run`, and
+`--company` / `--profile` / `--region` flags.
+
 ```bash
 # Invite an applicant (sends temporary password via email)
-COMPANY_NAME=acme ./scripts/invite-user.sh applicant@example.com "First" "Last"
+./scripts/invite-user.sh --email applicant@example.com --first Jane --last Smith
+# Resend an expired invitation
+./scripts/invite-user.sh --resend --email applicant@example.com --company acme
+
+# List users (table view, company auto-detected from cdk.json)
+./scripts/list-users.sh
+# Filter and format options
+./scripts/list-users.sh --status FORCE_CHANGE_PASSWORD --format quiet
+./scripts/list-users.sh --email jane@ --format csv
+
+# Remove a user (prompts for confirmation)
+./scripts/remove-user.sh --email applicant@example.com
+# Disable instead of delete
+./scripts/remove-user.sh --email applicant@example.com --disable
+# Bulk-remove expired invitations via pipe
+./scripts/list-users.sh --status FORCE_CHANGE_PASSWORD --format quiet \
+  | xargs -I {} ./scripts/remove-user.sh --email {} --company acme --yes
 
 # Upload content to S3 and invalidate CloudFront cache
-COMPANY_NAME=acme CONTENT_DIR=./content ./scripts/upload-content.sh
+./scripts/upload-content.sh
+CONTENT_DIR=./my-content ./scripts/upload-content.sh --company acme
 ```
 
 ## Architecture

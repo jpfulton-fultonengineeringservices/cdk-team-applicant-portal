@@ -264,6 +264,60 @@ Sync your HTML content to S3 and invalidate the CloudFront cache:
 
 The content directory must contain at minimum `index.html` and `error.html`. By default, files present in S3 but absent from the local directory are removed — pass `--no-delete` to preserve them. Run with `--dry-run` to preview what would change without uploading anything.
 
+**3. List users**
+
+View all applicant accounts in the User Pool:
+
+```bash
+# Table view — company auto-detected from cdk.json
+./scripts/list-users.sh
+
+# Filter by status
+./scripts/list-users.sh --status FORCE_CHANGE_PASSWORD
+
+# Filter by email prefix
+./scripts/list-users.sh --email jane@
+
+# Count confirmed users only
+./scripts/list-users.sh --status CONFIRMED --count
+
+# Export as CSV
+./scripts/list-users.sh --format csv > users.csv
+
+# One email per line (for piping to other scripts)
+./scripts/list-users.sh --format quiet
+```
+
+Output formats: `table` (default, aligned columns), `csv`, `json` (raw AWS response), `quiet` (one email per line). Run with `--help` to see all options.
+
+**4. Remove users**
+
+Delete or disable an applicant account:
+
+```bash
+# Remove a user (prompts for confirmation)
+./scripts/remove-user.sh --email applicant@example.com
+
+# Disable instead of delete — blocks login but preserves the account (reversible)
+./scripts/remove-user.sh --email applicant@example.com --disable
+
+# Skip confirmation prompt
+./scripts/remove-user.sh --email applicant@example.com --yes
+
+# Preview what would happen without making any changes
+./scripts/remove-user.sh --email applicant@example.com --dry-run
+```
+
+Account details (name, status, created date, MFA) are always displayed before any action is taken. Run with `--help` to see all options.
+
+The `list-users.sh --format quiet` output pipes directly into `remove-user.sh`, making bulk operations straightforward:
+
+```bash
+# Remove all users with expired invitations
+./scripts/list-users.sh --status FORCE_CHANGE_PASSWORD --format quiet \
+  | xargs -I {} ./scripts/remove-user.sh --email {} --company acme --yes
+```
+
 ---
 
 ## Subsequent Deployments
