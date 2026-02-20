@@ -133,6 +133,7 @@ print_stack_info
 # ---------------------------------------------------------------------------
 
 echo "Fetching stack outputs from CloudFormation..."
+prefetch_stack_outputs
 BUCKET="$(get_stack_output "ContentBucketName")"
 DIST_ID="$(get_stack_output "DistributionId")"
 

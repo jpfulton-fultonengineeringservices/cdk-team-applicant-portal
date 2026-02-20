@@ -334,53 +334,25 @@ print_stack_info() {
 }
 
 # ---------------------------------------------------------------------------
-# _describe_stack_cached
+# prefetch_stack_outputs
 #
-# Calls describe-stacks for STACK_NAME, caching the raw JSON response in
-# _STACK_DESCRIBE_CACHE. Subsequent calls for the same STACK_NAME return the
-# cached value. Returns the describe-stacks exit code; on failure the cache
-# holds the error text.
+# Calls describe-stacks once for STACK_NAME and caches the raw JSON in
+# _STACK_DESCRIBE_CACHE. Must be called in the parent shell (not inside
+# $(...)) so the cache persists for subsequent get_stack_output calls.
+#
+# Exits with a helpful error if the stack does not exist or cannot be
+# described.
 #
 # Reads globals: STACK_NAME, REGION, PROFILE_ARGS
-# Sets globals:  _STACK_DESCRIBE_CACHE, _STACK_DESCRIBE_CACHE_NAME
+# Sets globals:  _STACK_DESCRIBE_CACHE
 # ---------------------------------------------------------------------------
 _STACK_DESCRIBE_CACHE=""
-_STACK_DESCRIBE_CACHE_NAME=""
-_STACK_DESCRIBE_CACHE_RC=0
 
-_describe_stack_cached() {
-  if [[ "${_STACK_DESCRIBE_CACHE_NAME}" == "${STACK_NAME}" ]]; then
-    return ${_STACK_DESCRIBE_CACHE_RC}
-  fi
-  _STACK_DESCRIBE_CACHE_NAME="${STACK_NAME}"
-  if _STACK_DESCRIBE_CACHE=$(aws cloudformation describe-stacks \
+prefetch_stack_outputs() {
+  if ! _STACK_DESCRIBE_CACHE=$(aws cloudformation describe-stacks \
       --stack-name "${STACK_NAME}" \
       --region "${REGION}" \
       "${PROFILE_ARGS[@]}" 2>&1); then
-    _STACK_DESCRIBE_CACHE_RC=0
-  else
-    _STACK_DESCRIBE_CACHE_RC=1
-  fi
-  return ${_STACK_DESCRIBE_CACHE_RC}
-}
-
-# ---------------------------------------------------------------------------
-# get_stack_output <export-suffix>
-#
-# Resolves a CloudFormation output exported as "${STACK_NAME}-<suffix>".
-# Prints the output value on success. Exits with a helpful error message if
-# the stack does not exist or the output is missing.
-#
-# Uses _describe_stack_cached to avoid redundant API calls when multiple
-# outputs are fetched from the same stack.
-#
-# Reads globals: STACK_NAME, REGION, PROFILE_ARGS
-# ---------------------------------------------------------------------------
-get_stack_output() {
-  local suffix="$1"
-  local export_name="${STACK_NAME}-${suffix}"
-
-  if ! _describe_stack_cached; then
     if echo "${_STACK_DESCRIBE_CACHE}" | grep -q "does not exist"; then
       echo "ERROR: Stack '${STACK_NAME}' not found in ${REGION}." >&2
       if discover_portal_stacks && [[ ${#DISCOVERED_STACKS[@]} -gt 0 ]]; then
@@ -397,20 +369,47 @@ get_stack_output() {
     fi
     exit 1
   fi
+}
+
+# ---------------------------------------------------------------------------
+# get_stack_output <export-suffix>
+#
+# Resolves a CloudFormation output exported as "${STACK_NAME}-<suffix>".
+# Prints the output value on success. Exits with a helpful error if the
+# output is missing.
+#
+# Requires prefetch_stack_outputs to have been called first in the parent
+# shell. If the cache is empty, falls back to a direct API call.
+#
+# Reads globals: _STACK_DESCRIBE_CACHE, STACK_NAME, REGION, PROFILE_ARGS
+# ---------------------------------------------------------------------------
+get_stack_output() {
+  local suffix="$1"
+  local export_name="${STACK_NAME}-${suffix}"
 
   local value
-  if command -v jq &>/dev/null; then
-    value=$(echo "${_STACK_DESCRIBE_CACHE}" \
-      | jq -r --arg en "${export_name}" \
-          '.Stacks[0].Outputs[] | select(.ExportName == $en) | .OutputValue // ""' \
-          2>/dev/null || true)
+  if [[ -n "${_STACK_DESCRIBE_CACHE}" ]]; then
+    if command -v jq &>/dev/null; then
+      value=$(echo "${_STACK_DESCRIBE_CACHE}" \
+        | jq -r --arg en "${export_name}" \
+            '.Stacks[0].Outputs[] | select(.ExportName == $en) | .OutputValue // ""' \
+            2>/dev/null || true)
+    else
+      value=$(node -e "
+        try {
+          const d = JSON.parse(process.argv[1]);
+          const o = (d.Stacks[0].Outputs || []).find(x => x.ExportName === process.argv[2]);
+          process.stdout.write(o ? o.OutputValue : '');
+        } catch(e) {}
+      " "${_STACK_DESCRIBE_CACHE}" "${export_name}" 2>/dev/null || true)
+    fi
   else
     value=$(aws cloudformation describe-stacks \
       --stack-name "${STACK_NAME}" \
       --region "${REGION}" \
       "${PROFILE_ARGS[@]}" \
       --query "Stacks[0].Outputs[?ExportName=='${export_name}'].OutputValue" \
-      --output text)
+      --output text 2>/dev/null || true)
   fi
 
   if [[ -z "${value}" || "${value}" == "None" ]]; then

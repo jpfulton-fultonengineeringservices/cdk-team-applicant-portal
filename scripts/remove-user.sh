@@ -118,6 +118,7 @@ print_stack_info
 # ---------------------------------------------------------------------------
 
 echo "Fetching User Pool ID from CloudFormation..."
+prefetch_stack_outputs
 USER_POOL_ID="$(get_stack_output "UserPoolId")"
 echo "User Pool: ${USER_POOL_ID}"
 

@@ -161,6 +161,7 @@ print_stack_info
 # ---------------------------------------------------------------------------
 
 echo "Fetching User Pool ID from CloudFormation..." >&2
+prefetch_stack_outputs
 USER_POOL_ID="$(get_stack_output "UserPoolId")"
 echo "User Pool: ${USER_POOL_ID}" >&2
 
@@ -214,29 +215,6 @@ extract_field() {
       } catch(e) {}
     " "${json}" "${field}" 2>/dev/null || true
   fi
-}
-
-# merge_json_arrays <file1> <file2> ...
-# Reads JSON arrays from stdin lines (one array per line) and merges them.
-merge_json_arrays() {
-  local combined=""
-  while IFS= read -r chunk; do
-    [[ -z "${chunk}" ]] && continue
-    if [[ -z "${combined}" ]]; then
-      combined="${chunk}"
-    else
-      if command -v jq &>/dev/null; then
-        combined=$(printf '%s\n%s' "${combined}" "${chunk}" | jq -s 'add')
-      else
-        combined=$(node -e "
-          const a = JSON.parse(process.argv[1]);
-          const b = JSON.parse(process.argv[2]);
-          process.stdout.write(JSON.stringify(a.concat(b)));
-        " "${combined}" "${chunk}" 2>/dev/null)
-      fi
-    fi
-  done
-  echo "${combined:-[]}"
 }
 
 # ---------------------------------------------------------------------------
