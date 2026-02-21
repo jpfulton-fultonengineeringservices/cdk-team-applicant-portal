@@ -8,7 +8,15 @@
 #                         package manager, and offers to install anything
 #                         that is missing.
 #
-# Reads globals: YES (from caller)
+# Auto-install consent is controlled by AUTO_INSTALL_DEPS, NOT by YES.
+# The --yes flag on calling scripts controls operational prompts (e.g.
+# "delete this user?") and must never silently trigger curl-pipe-bash
+# installers or sudo package-manager commands.
+#
+# Set AUTO_INSTALL_DEPS=true in the environment to skip install prompts:
+#   AUTO_INSTALL_DEPS=true ./scripts/invite-user.sh --email ...
+#
+# Reads globals: AUTO_INSTALL_DEPS (from environment)
 
 # ---------------------------------------------------------------------------
 # _detect_os
@@ -50,7 +58,7 @@ _detect_package_manager() {
 # official installer. After install, evals brew shellenv so the current
 # shell can use it immediately.
 #
-# Reads globals: YES
+# Reads globals: AUTO_INSTALL_DEPS
 # ---------------------------------------------------------------------------
 _ensure_homebrew() {
   if command -v brew &>/dev/null; then
@@ -72,7 +80,7 @@ _ensure_homebrew() {
   echo "" >&2
 
   local do_install=false
-  if [[ "${YES:-false}" == "true" ]]; then
+  if [[ "${AUTO_INSTALL_DEPS:-false}" == "true" ]]; then
     do_install=true
   elif [[ -t 0 ]]; then
     local _ans
@@ -116,7 +124,7 @@ _ensure_homebrew() {
 # After this function returns 0, the `nvm` function is available in the
 # current shell.
 #
-# Reads globals: YES
+# Reads globals: AUTO_INSTALL_DEPS
 # ---------------------------------------------------------------------------
 _ensure_nvm() {
   # nvm is a shell function — check with `type`
@@ -143,7 +151,7 @@ _ensure_nvm() {
   echo "" >&2
 
   local do_install=false
-  if [[ "${YES:-false}" == "true" ]]; then
+  if [[ "${AUTO_INSTALL_DEPS:-false}" == "true" ]]; then
     do_install=true
   elif [[ -t 0 ]]; then
     local _ans
@@ -270,7 +278,7 @@ _build_install_cmd() {
 # detects the platform and package manager, and offers to install
 # everything in one pass.
 #
-# Reads globals: YES
+# Reads globals: AUTO_INSTALL_DEPS
 # ---------------------------------------------------------------------------
 ensure_dependencies() {
   # --- 1. Probe ---
@@ -422,7 +430,7 @@ ensure_dependencies() {
 
   if [[ ${#missing_required[@]} -eq 0 ]]; then
     # Only recommended tools are missing — less urgent prompt
-    if [[ "${YES:-false}" == "true" ]]; then
+    if [[ "${AUTO_INSTALL_DEPS:-false}" == "true" ]]; then
       do_install="all"
     elif [[ -t 0 ]]; then
       echo "" >&2
@@ -438,7 +446,7 @@ ensure_dependencies() {
     fi
   else
     # Required tools are missing — three-way prompt
-    if [[ "${YES:-false}" == "true" ]]; then
+    if [[ "${AUTO_INSTALL_DEPS:-false}" == "true" ]]; then
       do_install="all"
     elif [[ -t 0 ]]; then
       echo "" >&2
