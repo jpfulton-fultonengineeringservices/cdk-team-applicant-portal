@@ -274,18 +274,6 @@ resolve_portal_stack() {
 }
 
 # ---------------------------------------------------------------------------
-# require_aws_cli
-#
-# Exits with an error if the AWS CLI is not on PATH.
-# ---------------------------------------------------------------------------
-require_aws_cli() {
-  if ! command -v aws &>/dev/null; then
-    echo "ERROR: AWS CLI not found. Install from https://aws.amazon.com/cli/" >&2
-    exit 1
-  fi
-}
-
-# ---------------------------------------------------------------------------
 # build_profile_args
 #
 # Sets global PROFILE_ARGS array from AWS_PROFILE. Avoids word-splitting
@@ -444,20 +432,6 @@ require_arg() {
   local argc="$3"
   if [[ ${argc} -lt 2 || -z "${value}" || "${value}" == -* ]]; then
     echo "ERROR: ${flag} requires a value." >&2
-    exit 1
-  fi
-}
-
-# ---------------------------------------------------------------------------
-# require_json_parser
-#
-# Exits with a clear error if neither jq nor node is available. Call once
-# before entering code paths that parse JSON.
-# ---------------------------------------------------------------------------
-require_json_parser() {
-  if ! command -v jq &>/dev/null && ! command -v node &>/dev/null; then
-    echo "ERROR: Neither 'jq' nor 'node' is installed." >&2
-    echo "       Install jq (https://jqlang.github.io/jq/) or Node.js to continue." >&2
     exit 1
   fi
 }
