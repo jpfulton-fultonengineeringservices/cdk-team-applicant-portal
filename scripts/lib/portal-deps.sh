@@ -559,7 +559,7 @@ ensure_dependencies() {
   fi
   if ! command -v column &>/dev/null; then
     echo "NOTE: column is not installed. The 'table' output format in list-users.sh" >&2
-    echo "      may not align correctly." >&2
+    echo "      will show tab-separated output instead of aligned columns." >&2
   fi
 
   echo "" >&2

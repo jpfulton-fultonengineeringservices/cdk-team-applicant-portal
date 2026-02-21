@@ -442,7 +442,7 @@ case "${FORMAT}" in
           "${ENABLEDS[${i}]}"
         i=$((i + 1))
       done
-    } | column -t -s $'\t'
+    } | if command -v column &>/dev/null; then column -t -s $'\t'; else cat; fi
     ;;
 
 esac
