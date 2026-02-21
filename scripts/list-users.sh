@@ -230,18 +230,18 @@ while true; do
     PAGE_USERS=$(echo "${PAGE_JSON}" | jq '.Users // []')
     PAGINATION_TOKEN=$(echo "${PAGE_JSON}" | jq -r '.PaginationToken // ""')
   else
-    PAGE_USERS=$(node -e "
-      try {
-        const r = JSON.parse(process.argv[1]);
-        process.stdout.write(JSON.stringify(r.Users || []));
-      } catch(e) { process.stdout.write('[]'); }
-    " "${PAGE_JSON}" 2>/dev/null || echo "[]")
-    PAGINATION_TOKEN=$(node -e "
-      try {
-        const r = JSON.parse(process.argv[1]);
-        process.stdout.write(r.PaginationToken || '');
-      } catch(e) {}
-    " "${PAGE_JSON}" 2>/dev/null || true)
+    PAGE_USERS=$(echo "${PAGE_JSON}" | node -e "
+      let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+        try{const r=JSON.parse(d);process.stdout.write(JSON.stringify(r.Users||[]))}
+        catch(e){process.stdout.write('[]')}
+      });
+    " 2>/dev/null || echo "[]")
+    PAGINATION_TOKEN=$(echo "${PAGE_JSON}" | node -e "
+      let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+        try{const r=JSON.parse(d);process.stdout.write(r.PaginationToken||'')}
+        catch(e){}
+      });
+    " 2>/dev/null || true)
   fi
 
   if [[ -z "${RAW_PAGES}" ]]; then
@@ -250,11 +250,13 @@ while true; do
     if command -v jq &>/dev/null; then
       RAW_PAGES=$(printf '%s\n%s' "${RAW_PAGES}" "${PAGE_USERS}" | jq -s 'add')
     else
-      RAW_PAGES=$(node -e "
-        const a = JSON.parse(process.argv[1]);
-        const b = JSON.parse(process.argv[2]);
-        process.stdout.write(JSON.stringify(a.concat(b)));
-      " "${RAW_PAGES}" "${PAGE_USERS}" 2>/dev/null)
+      RAW_PAGES=$(printf '%s\n%s' "${RAW_PAGES}" "${PAGE_USERS}" | node -e "
+        let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+          const parts=d.split('\\n');
+          const a=JSON.parse(parts[0]);const b=JSON.parse(parts.slice(1).join('\\n'));
+          process.stdout.write(JSON.stringify(a.concat(b)));
+        });
+      " 2>/dev/null)
     fi
   fi
 
@@ -277,12 +279,12 @@ ENABLEDS=()
 if command -v jq &>/dev/null; then
   USER_COUNT=$(echo "${RAW_PAGES}" | jq 'length')
 else
-  USER_COUNT=$(node -e "
-    try {
-      const a = JSON.parse(process.argv[1]);
-      process.stdout.write(String(a.length));
-    } catch(e) { process.stdout.write('0'); }
-  " "${RAW_PAGES}" 2>/dev/null || echo "0")
+  USER_COUNT=$(echo "${RAW_PAGES}" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+      try{const a=JSON.parse(d);process.stdout.write(String(a.length))}
+      catch(e){process.stdout.write('0')}
+    });
+  " 2>/dev/null || echo "0")
 fi
 
 idx=0
@@ -291,12 +293,12 @@ while [[ ${idx} -lt ${USER_COUNT} ]]; do
   if command -v jq &>/dev/null; then
     USER_JSON=$(echo "${RAW_PAGES}" | jq -c ".[${idx}]")
   else
-    USER_JSON=$(node -e "
-      try {
-        const a = JSON.parse(process.argv[1]);
-        process.stdout.write(JSON.stringify(a[parseInt(process.argv[2])]));
-      } catch(e) { process.stdout.write('{}'); }
-    " "${RAW_PAGES}" "${idx}" 2>/dev/null || echo "{}")
+    USER_JSON=$(echo "${RAW_PAGES}" | node -e "
+      let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+        try{const a=JSON.parse(d);process.stdout.write(JSON.stringify(a[${idx}]))}
+        catch(e){process.stdout.write('{}')}
+      });
+    " 2>/dev/null || echo "{}")
   fi
 
   email="$(extract_user_attr "${USER_JSON}" "email")"
@@ -421,10 +423,11 @@ case "${FORMAT}" in
     if command -v jq &>/dev/null; then
       echo "${JSON_OUT}" | jq '.'
     else
-      node -e "
-        const a = JSON.parse(process.argv[1]);
-        process.stdout.write(JSON.stringify(a, null, 2));
-      " "${JSON_OUT}" 2>/dev/null
+      echo "${JSON_OUT}" | node -e "
+        let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+          const a=JSON.parse(d);process.stdout.write(JSON.stringify(a,null,2));
+        });
+      " 2>/dev/null
     fi
     ;;
 
