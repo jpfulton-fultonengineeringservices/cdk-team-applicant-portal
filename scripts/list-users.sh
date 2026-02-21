@@ -369,11 +369,11 @@ case "${FORMAT}" in
     i=0
     while [[ ${i} -lt ${RESULT_COUNT} ]]; do
       # RFC 4180: double quotes inside a quoted field must be escaped as ""
-      local csv_email="${EMAILS[${i}]//\"/\"\"}"
-      local csv_name="${NAMES[${i}]//\"/\"\"}"
-      local csv_status="${STATUSES[${i}]//\"/\"\"}"
-      local csv_created="${CREATEDS[${i}]//\"/\"\"}"
-      local csv_enabled="${ENABLEDS[${i}]//\"/\"\"}"
+      csv_email="${EMAILS[${i}]//\"/\"\"}"
+      csv_name="${NAMES[${i}]//\"/\"\"}"
+      csv_status="${STATUSES[${i}]//\"/\"\"}"
+      csv_created="${CREATEDS[${i}]//\"/\"\"}"
+      csv_enabled="${ENABLEDS[${i}]//\"/\"\"}"
       printf '"%s","%s","%s","%s","%s"\n' \
         "${csv_email}" \
         "${csv_name}" \
