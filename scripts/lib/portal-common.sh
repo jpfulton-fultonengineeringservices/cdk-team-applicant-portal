@@ -92,9 +92,12 @@ discover_portal_stacks() {
     --query "StackSummaries[?starts_with(StackName, 'ApplicantPortal-')].StackName" \
     --output text 2>/dev/null || true)
 
-  while IFS=$'\t\n' read -r line; do
+  # AWS CLI --output text for a flat array puts all values on one line
+  # separated by tabs. Convert tabs to newlines so each stack name is
+  # read as a separate array entry.
+  while IFS= read -r line; do
     [[ -n "${line}" ]] && DISCOVERED_STACKS+=("${line}")
-  done <<< "${raw}"
+  done <<< "$(echo "${raw}" | tr '\t' '\n')"
 
   [[ ${#DISCOVERED_STACKS[@]} -gt 0 ]]
 }
