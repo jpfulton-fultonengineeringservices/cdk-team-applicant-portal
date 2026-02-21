@@ -368,13 +368,18 @@ case "${FORMAT}" in
     printf '%s\n' "Email,Name,Status,Created,Enabled"
     i=0
     while [[ ${i} -lt ${RESULT_COUNT} ]]; do
-      # Quote fields that may contain commas
+      # RFC 4180: double quotes inside a quoted field must be escaped as ""
+      local csv_email="${EMAILS[${i}]//\"/\"\"}"
+      local csv_name="${NAMES[${i}]//\"/\"\"}"
+      local csv_status="${STATUSES[${i}]//\"/\"\"}"
+      local csv_created="${CREATEDS[${i}]//\"/\"\"}"
+      local csv_enabled="${ENABLEDS[${i}]//\"/\"\"}"
       printf '"%s","%s","%s","%s","%s"\n' \
-        "${EMAILS[${i}]}" \
-        "${NAMES[${i}]}" \
-        "${STATUSES[${i}]}" \
-        "${CREATEDS[${i}]}" \
-        "${ENABLEDS[${i}]}"
+        "${csv_email}" \
+        "${csv_name}" \
+        "${csv_status}" \
+        "${csv_created}" \
+        "${csv_enabled}"
       i=$((i + 1))
     done
     ;;
