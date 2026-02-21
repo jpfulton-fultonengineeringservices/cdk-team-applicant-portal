@@ -6,6 +6,13 @@ This file is automatically maintained by [release-please](https://github.com/goo
 Do not edit it manually — commit messages following [Conventional Commits](https://www.conventionalcommits.org/)
 drive the version bumps and changelog entries.
 
+## [1.2.0](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/compare/v1.1.1...v1.2.0) (2026-02-21)
+
+
+### Features
+
+* **ci:** enforce conventional commit format on PR titles ([#16](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/issues/16)) ([7e3bd1b](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/commit/7e3bd1be01599152417bf55f861ecd711021cb47))
+
 ## [1.1.1](https://github.com/jpfulton-fultonengineeringservices/cdk-team-applicant-portal/compare/v1.1.0...v1.1.1) (2026-02-20)
 
 
