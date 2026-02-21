@@ -126,14 +126,10 @@ ensure_dependencies
 build_profile_args
 verify_aws_credentials
 resolve_portal_stack
-print_stack_info
 
-# ---------------------------------------------------------------------------
-# Resolve User Pool ID from CloudFormation outputs
-# ---------------------------------------------------------------------------
-
-echo "Fetching User Pool ID from CloudFormation..."
+echo "Fetching stack outputs from CloudFormation..."
 prefetch_stack_outputs
+print_stack_info
 USER_POOL_ID="$(get_stack_output "UserPoolId")"
 echo "User Pool: ${USER_POOL_ID}"
 

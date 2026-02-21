@@ -307,18 +307,43 @@ verify_aws_credentials() {
 # ---------------------------------------------------------------------------
 # print_stack_info
 #
-# Prints the Stack / Account / Region / Portal summary block. Fetches the
-# PortalUrl stack output for display; gracefully skips if absent.
+# Prints the Stack / Account / Region / Portal summary block. Extracts the
+# PortalUrl from _STACK_DESCRIBE_CACHE if available (call prefetch_stack_outputs
+# first to avoid a redundant API call); falls back to a direct API call if
+# the cache is empty.
 #
-# Reads globals: STACK_NAME, ACCOUNT_ID, REGION, PROFILE_ARGS
+# Reads globals: STACK_NAME, ACCOUNT_ID, REGION, PROFILE_ARGS,
+#                _STACK_DESCRIBE_CACHE
 # ---------------------------------------------------------------------------
 print_stack_info() {
   echo "" >&2
   echo "Stack:   ${STACK_NAME}" >&2
   echo "Account: ${ACCOUNT_ID}" >&2
   echo "Region:  ${REGION}" >&2
-  local portal_url
-  portal_url="$(_get_portal_url_for_stack "${STACK_NAME}")"
+
+  local portal_url=""
+  local export_name="${STACK_NAME}-PortalUrl"
+
+  if [[ -n "${_STACK_DESCRIBE_CACHE}" ]]; then
+    if command -v jq &>/dev/null; then
+      portal_url=$(echo "${_STACK_DESCRIBE_CACHE}" \
+        | jq -r --arg en "${export_name}" \
+            '.Stacks[0].Outputs[]? | select(.ExportName == $en) | .OutputValue // ""' \
+            2>/dev/null || true)
+    elif command -v node &>/dev/null; then
+      portal_url=$(echo "${_STACK_DESCRIBE_CACHE}" | node -e "
+        let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+          try{const s=JSON.parse(d);const o=(s.Stacks[0].Outputs||[]).find(x=>x.ExportName===process.argv[1]);
+          process.stdout.write(o?o.OutputValue:'')}catch(e){}
+        });
+      " "${export_name}" 2>/dev/null || true)
+    fi
+  fi
+
+  if [[ -z "${portal_url}" || "${portal_url}" == "None" ]]; then
+    portal_url="$(_get_portal_url_for_stack "${STACK_NAME}")"
+  fi
+
   if [[ -n "${portal_url}" ]]; then
     echo "Portal:  ${portal_url}" >&2
   fi

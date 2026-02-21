@@ -154,14 +154,10 @@ ensure_dependencies
 build_profile_args
 verify_aws_credentials
 resolve_portal_stack
-print_stack_info
 
-# ---------------------------------------------------------------------------
-# Resolve User Pool ID from CloudFormation outputs
-# ---------------------------------------------------------------------------
-
-echo "Fetching User Pool ID from CloudFormation..." >&2
+echo "Fetching stack outputs from CloudFormation..." >&2
 prefetch_stack_outputs
+print_stack_info
 USER_POOL_ID="$(get_stack_output "UserPoolId")"
 echo "User Pool: ${USER_POOL_ID}" >&2
 
@@ -264,63 +260,54 @@ while true; do
 done
 
 # ---------------------------------------------------------------------------
-# Parse users into parallel arrays (bash 3.2 compatible)
+# Parse users into parallel arrays in a single pass
 # ---------------------------------------------------------------------------
 
-# Extract the total user count first, then build display arrays.
-# We store parallel arrays: EMAILS, NAMES, STATUSES, CREATEDS, ENABLEDS.
+# Extract all fields for all users in one jq/node invocation to avoid
+# spawning subprocesses per user (which scales poorly with node's ~100ms
+# startup). Output is tab-separated lines: email\tname\tstatus\tcreated\tenabled
 EMAILS=()
 NAMES=()
 STATUSES=()
 CREATEDS=()
 ENABLEDS=()
 
-# Get the number of users in the merged array
+PARSED_LINES=""
 if command -v jq &>/dev/null; then
-  USER_COUNT=$(echo "${RAW_PAGES}" | jq 'length')
+  PARSED_LINES=$(echo "${RAW_PAGES}" | jq -r '
+    .[] |
+    ((.Attributes // .UserAttributes // []) | from_entries) as $attrs |
+    [
+      ($attrs.email // ""),
+      ((($attrs.given_name // "") + " " + ($attrs.family_name // "")) | ltrimstr(" ") | rtrimstr(" ")),
+      (.UserStatus // ""),
+      ((.UserCreateDate // "")[:10]),
+      (if .Enabled then "yes" else "no" end)
+    ] | @tsv
+  ' 2>/dev/null || true)
 else
-  USER_COUNT=$(echo "${RAW_PAGES}" | node -e "
+  PARSED_LINES=$(echo "${RAW_PAGES}" | node -e "
     let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
-      try{const a=JSON.parse(d);process.stdout.write(String(a.length))}
-      catch(e){process.stdout.write('0')}
+      try{
+        const users=JSON.parse(d);
+        const lines=users.map(u=>{
+          const attrs=(u.Attributes||u.UserAttributes||[]);
+          const get=n=>(attrs.find(a=>a.Name===n)||{}).Value||'';
+          const name=(get('given_name')+' '+get('family_name')).trim();
+          const created=(u.UserCreateDate||'').substring(0,10);
+          const enabled=u.Enabled?'yes':'no';
+          return [get('email'),name,u.UserStatus||'',created,enabled].join('\t');
+        });
+        process.stdout.write(lines.join('\n'));
+      }catch(e){}
     });
-  " 2>/dev/null || echo "0")
+  " 2>/dev/null || true)
 fi
 
-idx=0
-while [[ ${idx} -lt ${USER_COUNT} ]]; do
-  # Extract one user JSON object
-  if command -v jq &>/dev/null; then
-    USER_JSON=$(echo "${RAW_PAGES}" | jq -c ".[${idx}]")
-  else
-    USER_JSON=$(echo "${RAW_PAGES}" | node -e "
-      let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
-        try{const a=JSON.parse(d);process.stdout.write(JSON.stringify(a[${idx}]))}
-        catch(e){process.stdout.write('{}')}
-      });
-    " 2>/dev/null || echo "{}")
-  fi
+while IFS=$'\t' read -r email name status created enabled; do
+  [[ -z "${email}" && -z "${status}" ]] && continue
 
-  email="$(extract_user_attr "${USER_JSON}" "email")"
-  given="$(extract_user_attr "${USER_JSON}" "given_name")"
-  family="$(extract_user_attr "${USER_JSON}" "family_name")"
-  name="${given} ${family}"
-  name="${name## }"
-  name="${name%% }"
-  status="$(extract_user_field "${USER_JSON}" "UserStatus")"
-  created="$(extract_user_field "${USER_JSON}" "UserCreateDate")"
-  # Trim to date portion only (first 10 chars of ISO timestamp)
-  created="${created:0:10}"
-  enabled_raw="$(extract_user_field "${USER_JSON}" "Enabled")"
-  if [[ "${enabled_raw}" == "true" || "${enabled_raw}" == "True" ]]; then
-    enabled="yes"
-  else
-    enabled="no"
-  fi
-
-  # Post-filter by status if needed
   if [[ -n "${POSTFILTER_STATUS}" && "${status}" != "${POSTFILTER_STATUS}" ]]; then
-    idx=$((idx + 1))
     continue
   fi
 
@@ -329,9 +316,7 @@ while [[ ${idx} -lt ${USER_COUNT} ]]; do
   STATUSES+=("${status}")
   CREATEDS+=("${created}")
   ENABLEDS+=("${enabled}")
-
-  idx=$((idx + 1))
-done
+done <<< "${PARSED_LINES}"
 
 RESULT_COUNT=${#EMAILS[@]}
 

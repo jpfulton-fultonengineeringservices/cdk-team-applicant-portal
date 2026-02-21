@@ -126,14 +126,10 @@ ensure_dependencies
 build_profile_args
 verify_aws_credentials
 resolve_portal_stack
-print_stack_info
-
-# ---------------------------------------------------------------------------
-# Resolve S3 bucket and CloudFront distribution ID from CloudFormation outputs
-# ---------------------------------------------------------------------------
 
 echo "Fetching stack outputs from CloudFormation..."
 prefetch_stack_outputs
+print_stack_info
 BUCKET="$(get_stack_output "ContentBucketName")"
 DIST_ID="$(get_stack_output "DistributionId")"
 
