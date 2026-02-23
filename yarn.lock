@@ -87,9 +87,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-ssm@npm:^3.993.0":
-  version: 3.993.0
-  resolution: "@aws-sdk/client-ssm@npm:3.993.0"
+"@aws-sdk/client-ssm@npm:^3.995.0":
+  version: 3.995.0
+  resolution: "@aws-sdk/client-ssm@npm:3.995.0"
   dependencies:
     "@aws-crypto/sha256-browser": "npm:5.2.0"
     "@aws-crypto/sha256-js": "npm:5.2.0"
@@ -101,9 +101,9 @@ __metadata:
     "@aws-sdk/middleware-user-agent": "npm:^3.972.11"
     "@aws-sdk/region-config-resolver": "npm:^3.972.3"
     "@aws-sdk/types": "npm:^3.973.1"
-    "@aws-sdk/util-endpoints": "npm:3.993.0"
+    "@aws-sdk/util-endpoints": "npm:3.995.0"
     "@aws-sdk/util-user-agent-browser": "npm:^3.972.3"
-    "@aws-sdk/util-user-agent-node": "npm:^3.972.9"
+    "@aws-sdk/util-user-agent-node": "npm:^3.972.10"
     "@smithy/config-resolver": "npm:^4.4.6"
     "@smithy/core": "npm:^3.23.2"
     "@smithy/fetch-http-handler": "npm:^5.3.9"
@@ -131,7 +131,7 @@ __metadata:
     "@smithy/util-utf8": "npm:^4.2.0"
     "@smithy/util-waiter": "npm:^4.2.8"
     tslib: "npm:^2.6.2"
-  checksum: 10c0/dcfac46aa8931fcee830a2b81969805cf56797814ead541f8bcee2a024f1e0b9eae73b5926ea7c6480f0b544c16d72f126f17e404c7f7a170f41ff105a64593d
+  checksum: 10c0/98c0949d66fccc43c60e93af769bf0b933cd2ba4ed772397388c4255744c91ccf758978a1100776189ce68a9178611b7a95e245351aa7c8f23463e221f5b0b55
   languageName: node
   linkType: hard
 
@@ -484,6 +484,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-sdk/util-endpoints@npm:3.995.0":
+  version: 3.995.0
+  resolution: "@aws-sdk/util-endpoints@npm:3.995.0"
+  dependencies:
+    "@aws-sdk/types": "npm:^3.973.1"
+    "@smithy/types": "npm:^4.12.0"
+    "@smithy/url-parser": "npm:^4.2.8"
+    "@smithy/util-endpoints": "npm:^3.2.8"
+    tslib: "npm:^2.6.2"
+  checksum: 10c0/605d9f7d50b9877a2e7512436e8cad4b1f38ca2a2b950f7912a4a90ed9377a4c4353110972b7a913a2f97b5d73315517fb6bd22a01d1d315b2704d6c8c5727d1
+  languageName: node
+  linkType: hard
+
 "@aws-sdk/util-locate-window@npm:^3.0.0":
   version: 3.965.4
   resolution: "@aws-sdk/util-locate-window@npm:3.965.4"
@@ -502,6 +515,24 @@ __metadata:
     bowser: "npm:^2.11.0"
     tslib: "npm:^2.6.2"
   checksum: 10c0/637f1396cfbca7b352ffaf332998c4223c35d0fa41431c106151a34c6bfe7c9e32e6a6dc7e75c495714e05f3729ae1f61996da923156c3edcb33e217e24328ad
+  languageName: node
+  linkType: hard
+
+"@aws-sdk/util-user-agent-node@npm:^3.972.10":
+  version: 3.972.10
+  resolution: "@aws-sdk/util-user-agent-node@npm:3.972.10"
+  dependencies:
+    "@aws-sdk/middleware-user-agent": "npm:^3.972.11"
+    "@aws-sdk/types": "npm:^3.973.1"
+    "@smithy/node-config-provider": "npm:^4.3.8"
+    "@smithy/types": "npm:^4.12.0"
+    tslib: "npm:^2.6.2"
+  peerDependencies:
+    aws-crt: ">=1.0.0"
+  peerDependenciesMeta:
+    aws-crt:
+      optional: true
+  checksum: 10c0/48cf1b3ca098459ab787dcc699a51f82bcf11df331b117e66b8ecd8607a272c622541ae93b445996f04e46ce4d19138135d0b07e1a17a695c9c97294d2b53e63
   languageName: node
   linkType: hard
 
@@ -3106,7 +3137,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "cdk-team-applicant-portal@workspace:."
   dependencies:
-    "@aws-sdk/client-ssm": "npm:^3.993.0"
+    "@aws-sdk/client-ssm": "npm:^3.995.0"
     "@eslint/js": "npm:^10.0.1"
     "@types/aws-lambda": "npm:^8.10.145"
     "@types/jest": "npm:^30.0.0"
