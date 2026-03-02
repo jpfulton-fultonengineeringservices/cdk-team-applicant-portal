@@ -2222,10 +2222,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/aws-lambda@npm:^8.10.145":
-  version: 8.10.160
-  resolution: "@types/aws-lambda@npm:8.10.160"
-  checksum: 10c0/0f524cbcab95108b9ef4876a0458fec11b948baa43741874bc5f10e6ba66bdde5245185adc33838fc057c6a2610a23ae610d3059ae90961eb8fdd126c042ebea
+"@types/aws-lambda@npm:^8.10.161":
+  version: 8.10.161
+  resolution: "@types/aws-lambda@npm:8.10.161"
+  checksum: 10c0/5a779901bb29a1989fe0ef30e4a515522af8fc66c237e0eedc954ab650651920540196b4629df25068c130a05a2a6142f661db7e26c7fbacc17ce11338367eb1
   languageName: node
   linkType: hard
 
@@ -3108,7 +3108,7 @@ __metadata:
   dependencies:
     "@aws-sdk/client-ssm": "npm:^3.993.0"
     "@eslint/js": "npm:^10.0.1"
-    "@types/aws-lambda": "npm:^8.10.145"
+    "@types/aws-lambda": "npm:^8.10.161"
     "@types/jest": "npm:^30.0.0"
     "@types/jsonwebtoken": "npm:^9.0.6"
     "@types/node": "npm:25.3.0"
