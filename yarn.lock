@@ -2839,12 +2839,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk@npm:2.1106.1":
-  version: 2.1106.1
-  resolution: "aws-cdk@npm:2.1106.1"
+"aws-cdk@npm:2.1111.0":
+  version: 2.1111.0
+  resolution: "aws-cdk@npm:2.1111.0"
   bin:
     cdk: bin/cdk
-  checksum: 10c0/c88cae90a9794c724474ff8c485c7726287c55bb81ded5d4dbf163072bcc6845c113eaff8fab0497ae72673f367f85b0e9660d2a7e1fa059041df4fcc64e4666
+  checksum: 10c0/7cf579068b19a211a845a5f55676dd335209ec91b3783845d0ed5e72f4fa1fcd3d39cc7f878c82c3628302b05639fccf006b4b956127e169fb9b469e7bf3b3a9
   languageName: node
   linkType: hard
 
@@ -3112,7 +3112,7 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/jsonwebtoken": "npm:^9.0.6"
     "@types/node": "npm:25.3.0"
-    aws-cdk: "npm:2.1106.1"
+    aws-cdk: "npm:2.1111.0"
     aws-cdk-lib: "npm:2.238.0"
     cdk-nag: "npm:^2.28.0"
     constructs: "npm:^10.5.1"
